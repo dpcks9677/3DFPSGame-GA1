@@ -13,7 +13,7 @@ public class PlayerRotate : MonoBehaviour
         // 2. 마우스 입력만큼 회전값을 누적
         _accumulationX += mouseX * _rotationSpeed * Time.deltaTime;
 
-        // 3. 누적값을 카메라에 적용
+        // 3. 누적값을 회전에 적용
         transform.eulerAngles = new Vector3(0f, _accumulationX, 0f);
     }
 }
