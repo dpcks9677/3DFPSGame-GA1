@@ -19,4 +19,4 @@
 ## or put your custom commands -------------------
 #echo 'Husky.Net is awesome!'
 
-dotnet format 3DFPSGame.sln --verify-no-changes --severity warn --include Assets/02.Scripts/
+dotnet format 3DFPSGame-GA1.sln --verify-no-changes --severity warn --include Assets/02.Scripts/
