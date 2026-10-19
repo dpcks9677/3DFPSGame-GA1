@@ -3,9 +3,9 @@ using UnityEngine;
 
 
 //role: 마우스 움직이면 카메라를 회전
-public class FPSCameraRotate : MonoBehaviour
+public class CameraRotate : MonoBehaviour
 {
-    [SerializeField] private float _rotationSpeed = 200f;
+    [SerializeField] private float _rotationSpeed = 1000f;
     private float _accumulationX = 0f; // 좌우 회전각
     private float _accumulationY = 0f; // 위아래 회전각
 
@@ -14,8 +14,6 @@ public class FPSCameraRotate : MonoBehaviour
         // 1. 마우스 입력을 받는다
         float mouseX = Input.GetAxis("Mouse X");
         float mouseY = Input.GetAxis("Mouse Y");
-
-        Debug.Log($"Mouse X: {mouseX}, Mouse Y: {mouseY}");
 
         // 2. 마우스 입력만큼 회전값을 누적
         _accumulationX += mouseX * _rotationSpeed * Time.deltaTime;
