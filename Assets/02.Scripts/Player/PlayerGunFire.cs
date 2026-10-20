@@ -4,8 +4,13 @@ public class PlayerGunFire : MonoBehaviour
 {
     [SerializeField] private ParticleSystem _hitEffectPrefab;
 
-    private float _range = 100f;
-    private float _damage = 10f;
+    [Header("스탯")]
+    [SerializeField] private float _range = 100f;
+    [SerializeField] private float _damage = 10f;
+    [SerializeField] private float _fireInterval = 0.1f;
+    [SerializeField] private const int MAX_MAGAZINE = 50;
+    private int _magazine = MAX_MAGAZINE;
+    private float _fireTimer = 0f;
 
 
     private void Update()
@@ -14,10 +19,24 @@ public class PlayerGunFire : MonoBehaviour
         // Physics.RayCast(): 레이저 발사
         // RayCastHit: 레이저와 물ㅊ가 부딪히면
 
+        // 0. 발사 타이머를 지난시간만큼 줄인다
+        _fireTimer -= Time.deltaTime;
+
         // 1. 좌클릭 입력 받기
-        if (Input.GetButtonDown("Fire1"))
+        if (Input.GetButton("Fire1") && _fireTimer <= 0f && _magazine > 0)
         {
+            _fireTimer = _fireInterval;
             Shoot();
+            _magazine--;
+            Debug.Log($"남은 탄창: {_magazine}");
+        }
+
+        // 5. 재장전
+        if (Input.GetButton("Reload"))
+        {
+            Debug.Log("재장전 실행");
+            _magazine = MAX_MAGAZINE;
+            Debug.Log($"장전완료 / 남은 탄약: {_magazine}");
         }
     }
 
