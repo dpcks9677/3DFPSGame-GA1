@@ -5,9 +5,16 @@ public class PlayerMove : MonoBehaviour
     [SerializeField] private float _moveSpeed = 7f;
     [SerializeField] private float _jumpPower = 7f;
     [SerializeField] private float _dashSpeed = 12f;
-    [SerializeField] private int _validJumpCount = 2;
+
     private const float Gravity = -20f; // 중력 가속도
     private float _yVelocity = 0f; // 떨어지는 속도
+
+    [SerializeField] private int _validJumpCount = 2;
+
+    [SerializeField] private int _stamina = 3;
+    private float _staminaRefillCounter = 0f;
+
+    private float _dashTime = 0f;
 
     [SerializeField] private CharacterController _characterController;
 
@@ -18,6 +25,21 @@ public class PlayerMove : MonoBehaviour
 
     private void Update()
     {
+        // 0. 스테미너 리필 카운터
+        if (_stamina < 5)
+        {
+            _staminaRefillCounter += Time.deltaTime;
+            if (_staminaRefillCounter >= 3f)
+            {
+                addStamina(1);
+                _staminaRefillCounter = 0f;
+            }
+        }
+        else
+        {
+            _staminaRefillCounter = 0f;
+        }
+
         // 1. 키보드 입력을 받는다
         float h = Input.GetAxisRaw("Horizontal");
         float v = Input.GetAxisRaw("Vertical");
@@ -38,23 +60,32 @@ public class PlayerMove : MonoBehaviour
         _yVelocity += Gravity * Time.deltaTime;
 
         // 4. 점프
-        if (Input.GetButtonDown("Jump") && _validJumpCount > 0)
+        if (Input.GetButtonDown("Jump") && _validJumpCount > 0 && _stamina > 0)
         {
             _yVelocity += _jumpPower;
             _validJumpCount--;
-            Debug.Log(_validJumpCount);
+            addStamina(-1);
+            Debug.Log($"Remain Jump: {_validJumpCount}");
         }
 
         Vector3 velocity;
 
         // 5. 속도를 구한다
-        if (Input.GetKey(KeyCode.LeftShift))
+        if (Input.GetKey(KeyCode.LeftShift) && _stamina > 0)
         {
-            velocity = direction * _dashSpeed;
+            _dashTime += Time.deltaTime;
+            velocity = direction * _dashSpeed; // 대쉬
         }
         else
         {
-            velocity = direction * _moveSpeed;
+            velocity = direction * _moveSpeed; // 일반
+        }
+
+        // 5-1 대쉬 시 스테미나 감소 로직
+        if (_dashTime >= 1f)
+        {
+            addStamina(-1);
+            _dashTime = 0f;
         }
 
         velocity.y = _yVelocity;
@@ -62,5 +93,11 @@ public class PlayerMove : MonoBehaviour
         // 6. 방향과 속력에 따라 이동한다.
         _characterController.Move(velocity * Time.deltaTime);
 
+    }
+
+    private void addStamina(int value)
+    {
+        _stamina += value;
+        Debug.Log($"stamina: {_stamina}");
     }
 }
