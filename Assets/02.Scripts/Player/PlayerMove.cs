@@ -5,6 +5,7 @@ public class PlayerMove : MonoBehaviour
     [SerializeField] private float _moveSpeed = 7f;
     [SerializeField] private float _jumpPower = 7f;
     [SerializeField] private float _dashSpeed = 12f;
+    [SerializeField] private int _validJumpCount = 2;
     private const float Gravity = -20f; // 중력 가속도
     private float _yVelocity = 0f; // 떨어지는 속도
 
@@ -32,13 +33,16 @@ public class PlayerMove : MonoBehaviour
         if (_characterController.isGrounded && _yVelocity < 0f)
         {
             _yVelocity = -2f; // 바닥에 붙어 있게 살짝 눌러줌
+            _validJumpCount = 2;
         }
         _yVelocity += Gravity * Time.deltaTime;
 
         // 4. 점프
-        if (Input.GetButtonDown("Jump") && _characterController.isGrounded)
+        if (Input.GetButtonDown("Jump") && _validJumpCount > 0)
         {
             _yVelocity += _jumpPower;
+            _validJumpCount--;
+            Debug.Log(_validJumpCount);
         }
 
         Vector3 velocity;
