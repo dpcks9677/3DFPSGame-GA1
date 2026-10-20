@@ -67,5 +67,8 @@
         "*.sln": "*.csproj",
         "*.slnx": "*.csproj"
     },
-    "dotnet.defaultSolution": "3DFPSGame-GA1.slnx"
+    "dotnet.defaultSolution": "3DFPSGame-GA1.slnx",
+    "[csharp]": {
+        "editor.formatOnSave": true
+    }
 }
