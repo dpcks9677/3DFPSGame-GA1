@@ -1752,7 +1752,8 @@ MonoBehaviour:
   _dashSpeed: 12
   _validJumpCount: 2
   _stamina: 5
-  _characterController: {fileID: 0}
+  _characterController: {fileID: 1537766209}
+  _coyoteTime: 0.5
 --- !u!143 &1537766209
 CharacterController:
   m_ObjectHideFlags: 0
@@ -1790,6 +1791,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6b2c89b77954f2c439c7eae60e3067ba, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerGunFire
+  _hitEffectPrefab: {fileID: 19800002, guid: 54dd9cb5740188a488b8baebbf19207c, type: 3}
+  _range: 100
+  _damage: 10
+  _fireInterval: 0.1
 --- !u!1 &1679091957
 GameObject:
   m_ObjectHideFlags: 0

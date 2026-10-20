@@ -17,7 +17,7 @@ public class PlayerGunFire : MonoBehaviour
     {
         // Ray: 레이저(시작위치 ,날아갈 방향)
         // Physics.RayCast(): 레이저 발사
-        // RayCastHit: 레이저와 물ㅊ가 부딪히면
+        // RayCastHit: 레이저와 물체가 부딪히면
 
         // 0. 발사 타이머를 지난시간만큼 줄인다
         _fireTimer -= Time.deltaTime;

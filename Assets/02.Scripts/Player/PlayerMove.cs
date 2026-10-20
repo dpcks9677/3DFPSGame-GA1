@@ -18,6 +18,12 @@ public class PlayerMove : MonoBehaviour
 
     [SerializeField] private CharacterController _characterController;
 
+
+    // 코요테 타임 변수
+    [SerializeField] private float _coyoteTime = 0.12f; // 인스펙터에서 튜닝
+    private float _coyoteCounter = 0f;
+    private bool _wasGrounded = true;
+
     private void Awake()
     {
         _characterController = GetComponent<CharacterController>();
@@ -59,14 +65,45 @@ public class PlayerMove : MonoBehaviour
         }
         _yVelocity += Gravity * Time.deltaTime;
 
-        // 4. 점프
-        if (Input.GetButtonDown("Jump") && _validJumpCount > 0 && _stamina > 0)
+        // 코요테 타임
+        bool grounded = _characterController.isGrounded;
+
+        if (grounded)
         {
-            _yVelocity += _jumpPower;
-            _validJumpCount--;
-            addStamina(-1);
-            Debug.Log($"Remain Jump: {_validJumpCount}");
+            _coyoteCounter = _coyoteTime;   // 바닥에 있으면 계속 리필
+            if (_yVelocity < 0f)
+            {
+                _yVelocity = -2f;
+                _validJumpCount = 2;
+            }
         }
+        else
+        {
+            _coyoteCounter -= Time.deltaTime;
+
+            // 점프 없이 바닥을 벗어난 첫 프레임 → 지상 점프 1회분 소모
+            if (_wasGrounded && _yVelocity <= 0f)
+                _validJumpCount = Mathf.Min(_validJumpCount, 1);
+        }
+        _wasGrounded = grounded;
+
+
+
+        // 4. 점프
+        if (Input.GetButtonDown("Jump") && _stamina > 0)
+        {
+            bool coyoteJump = _coyoteCounter > 0f;
+
+            if (coyoteJump || _validJumpCount > 0)
+            {
+                _yVelocity = _jumpPower;    // += 가 아니라 = (아래 주의 참고)
+                _coyoteCounter = 0f;        // 코요테 점프 중복 방지
+                if (!coyoteJump) _validJumpCount--;
+                else _validJumpCount = Mathf.Max(0, _validJumpCount - 1);
+                addStamina(-1);
+            }
+        }
+
 
         Vector3 velocity;
 
