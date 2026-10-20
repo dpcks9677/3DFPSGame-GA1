@@ -4,6 +4,7 @@ public class PlayerMove : MonoBehaviour
 {
     [SerializeField] private float _moveSpeed = 7f;
     [SerializeField] private float _jumpPower = 7f;
+    [SerializeField] private float _dashSpeed = 12f;
     private const float Gravity = -20f; // 중력 가속도
     private float _yVelocity = 0f; // 떨어지는 속도
 
@@ -40,8 +41,17 @@ public class PlayerMove : MonoBehaviour
             _yVelocity += _jumpPower;
         }
 
+        Vector3 velocity;
+
         // 5. 속도를 구한다
-        Vector3 velocity = direction * _moveSpeed;
+        if (Input.GetKey(KeyCode.LeftShift))
+        {
+            velocity = direction * _dashSpeed;
+        }
+        else
+        {
+            velocity = direction * _moveSpeed;
+        }
 
         velocity.y = _yVelocity;
 
