@@ -320,7 +320,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 687669801f105e641a4ed36be65f85ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CameraFollow
-  _target: {fileID: 1666109015}
+  _cameraPosition: {fileID: 0}
+  _cameraArray: []
+  _player: {fileID: 0}
 --- !u!1 &386923172
 GameObject:
   m_ObjectHideFlags: 0
@@ -1607,6 +1609,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMove
   _moveSpeed: 7
+  _jumpPower: 7
   _characterController: {fileID: 0}
 --- !u!143 &1537766209
 CharacterController:
