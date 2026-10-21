@@ -1797,6 +1797,7 @@ MonoBehaviour:
   _range: 100
   _damage: 10
   _fireInterval: 0.1
+  _reloatingTime: 3
 --- !u!114 &1537766211
 MonoBehaviour:
   m_ObjectHideFlags: 0

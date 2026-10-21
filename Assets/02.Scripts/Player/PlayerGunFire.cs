@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Threading.Tasks;
 using Unity.VisualScripting;
 using UnityEngine;
 
@@ -14,7 +15,7 @@ public class PlayerGunFire : MonoBehaviour
     [SerializeField] private float _reloatingTime = 3f;
     private int _magazine = MAX_MAGAZINE;
     private float _fireTimer = 0f;
-    private Coroutine _reloadCoroutine = null;
+    private Awaitable _reloadAwaitable = null;
 
 
     private void Update()
@@ -34,18 +35,18 @@ public class PlayerGunFire : MonoBehaviour
             _magazine--;
             Debug.Log($"남은 탄창: {_magazine}");
 
-            if (_reloadCoroutine != null)
+            if (_reloadAwaitable != null)
             {
-                StopCoroutine(_reloadCoroutine);
+                _reloadAwaitable.Cancel();
                 Debug.Log("재장전 취소됨");
-                _reloadCoroutine = null;
+                _reloadAwaitable = null;
             }
         }
 
         // 5. 재장전
-        if (Input.GetButtonDown("Reload") && _reloadCoroutine == null)
+        if (Input.GetButtonDown("Reload") && _reloadAwaitable == null)
         {
-            _reloadCoroutine = StartCoroutine(Reloading_Coroutine());
+            ReloadingAsync();
         }
     }
 
@@ -70,11 +71,11 @@ public class PlayerGunFire : MonoBehaviour
         }
     }
 
-    private IEnumerator Reloading_Coroutine()
+    private async Awaitable ReloadingAsync()
     {
-        yield return new WaitForSeconds(_reloatingTime);
+        await Awaitable.WaitForSecondsAsync(_reloatingTime);
         _magazine = MAX_MAGAZINE;
         Debug.Log("장전완료");
-        _reloadCoroutine = null;
+        _reloadAwaitable = null;
     }
 }
