@@ -1,3 +1,4 @@
+using System.Collections;
 using Unity.VisualScripting;
 using UnityEngine;
 
@@ -13,8 +14,6 @@ public class PlayerGunFire : MonoBehaviour
     [SerializeField] private float _reloatingTime = 3f;
     private int _magazine = MAX_MAGAZINE;
     private float _fireTimer = 0f;
-    private float _reloadingTimer = 0f;
-    private bool _isReloading = false;
 
 
     private void Update()
@@ -36,21 +35,9 @@ public class PlayerGunFire : MonoBehaviour
         }
 
         // 5. 재장전
-        if (Input.GetButtonDown("Reload") && _isReloading == false)
+        if (Input.GetButtonDown("Reload"))
         {
-            _magazine = MAX_MAGAZINE;
-            _isReloading = true;
-        }
-
-        if (_isReloading)
-        {
-            _reloadingTimer += Time.deltaTime;
-            if (_reloadingTimer > _reloatingTime)
-            {
-                _isReloading = false;
-                _reloadingTimer = 0f;
-                Reloading();
-            }
+            StartCoroutine(Reloading_Coroutine());
         }
     }
 
@@ -75,8 +62,9 @@ public class PlayerGunFire : MonoBehaviour
         }
     }
 
-    private void Reloading()
+    private IEnumerator Reloading_Coroutine()
     {
+        yield return new WaitForSeconds(_reloatingTime);
         _magazine = MAX_MAGAZINE;
         Debug.Log("장전완료");
     }
