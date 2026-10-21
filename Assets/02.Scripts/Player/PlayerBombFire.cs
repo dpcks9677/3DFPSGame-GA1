@@ -1,5 +1,5 @@
 using System;
-using Unity.Mathematics;
+using Lean.Pool;
 using UnityEngine;
 
 public class PlayerBombFire : MonoBehaviour
@@ -35,7 +35,7 @@ public class PlayerBombFire : MonoBehaviour
             _remainingBombs--;
 
             // 2. 발사 위치에 수류탄 생성
-            Bomb bomb = Instantiate(_bombPrefab, _firePoint.position, quaternion.identity);
+            GameObject bomb = LeanPool.Spawn(_bombPrefab.gameObject, _firePoint.position, Quaternion.identity);
 
             // 3. 생성된 수류탄을 시선 방향으로 던지기
             Rigidbody rigidbody = bomb.GetComponent<Rigidbody>();
