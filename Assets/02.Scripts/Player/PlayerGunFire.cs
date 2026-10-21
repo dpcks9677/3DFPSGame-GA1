@@ -1,3 +1,4 @@
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class PlayerGunFire : MonoBehaviour
@@ -8,9 +9,12 @@ public class PlayerGunFire : MonoBehaviour
     [SerializeField] private float _range = 100f;
     [SerializeField] private float _damage = 10f;
     [SerializeField] private float _fireInterval = 0.1f;
-    [SerializeField] private const int MAX_MAGAZINE = 50;
+    [SerializeField] private const int MAX_MAGAZINE = 30;
+    [SerializeField] private float _reloatingTime = 3f;
     private int _magazine = MAX_MAGAZINE;
     private float _fireTimer = 0f;
+    private float _reloadingTimer = 0f;
+    private bool _isReloading = false;
 
 
     private void Update()
@@ -32,11 +36,21 @@ public class PlayerGunFire : MonoBehaviour
         }
 
         // 5. 재장전
-        if (Input.GetButton("Reload"))
+        if (Input.GetButtonDown("Reload") && _isReloading == false)
         {
-            Debug.Log("재장전 실행");
             _magazine = MAX_MAGAZINE;
-            Debug.Log($"장전완료 / 남은 탄약: {_magazine}");
+            _isReloading = true;
+        }
+
+        if (_isReloading)
+        {
+            _reloadingTimer += Time.deltaTime;
+            if (_reloadingTimer > _reloatingTime)
+            {
+                _isReloading = false;
+                _reloadingTimer = 0f;
+                Reloading();
+            }
         }
     }
 
@@ -59,5 +73,11 @@ public class PlayerGunFire : MonoBehaviour
             effect.transform.forward = hitInfo.normal;
             effect.Play();
         }
+    }
+
+    private void Reloading()
+    {
+        _magazine = MAX_MAGAZINE;
+        Debug.Log("장전완료");
     }
 }
