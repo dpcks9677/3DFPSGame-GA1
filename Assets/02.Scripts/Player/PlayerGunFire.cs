@@ -14,6 +14,7 @@ public class PlayerGunFire : MonoBehaviour
     [SerializeField] private float _reloatingTime = 3f;
     private int _magazine = MAX_MAGAZINE;
     private float _fireTimer = 0f;
+    private Coroutine _reloadCoroutine = null;
 
 
     private void Update()
@@ -32,12 +33,19 @@ public class PlayerGunFire : MonoBehaviour
             Shoot();
             _magazine--;
             Debug.Log($"남은 탄창: {_magazine}");
+
+            if (_reloadCoroutine != null)
+            {
+                StopCoroutine(_reloadCoroutine);
+                Debug.Log("재장전 취소됨");
+                _reloadCoroutine = null;
+            }
         }
 
         // 5. 재장전
-        if (Input.GetButtonDown("Reload"))
+        if (Input.GetButtonDown("Reload") && _reloadCoroutine == null)
         {
-            StartCoroutine(Reloading_Coroutine());
+            _reloadCoroutine = StartCoroutine(Reloading_Coroutine());
         }
     }
 
@@ -67,5 +75,6 @@ public class PlayerGunFire : MonoBehaviour
         yield return new WaitForSeconds(_reloatingTime);
         _magazine = MAX_MAGAZINE;
         Debug.Log("장전완료");
+        _reloadCoroutine = null;
     }
 }
