@@ -28,9 +28,15 @@ public class Zombie : MonoBehaviour
     [SerializeField] private float _attackInterval = 1.2f;  // 공격 간격
     [SerializeField] private float _moveSpeed = 5;          // 이동속도
     [SerializeField] private float _health = 30;
+    [SerializeField] private float _patrolInterval = 3f;    // Idle에서 이만큼 기다리면 순찰을 나간다.
+    [SerializeField] private float _patrolRadius = 10f;     // 처음 자리 기준 순찰 반경
+    [SerializeField] private float _patrolTimeout = 5f;     // 순찰이 이 시간을 넘기면 포기하고 Idle로 돌아간다.
 
 
     private float _attackTimer = 0f;
+    private float _idleTimer = 0f;
+    private float _patrolTimer = 0f;
+    private Vector3 _patrolTarget;
     private CharacterController _controller;
     private Vector3 _startPosition;
     private GameObject _player;
@@ -66,6 +72,10 @@ public class Zombie : MonoBehaviour
 
             case ZombieState.Attack:
                 Attack();
+                break;
+
+            case ZombieState.Patrol:
+                Patrol();
                 break;
         }
     }
@@ -125,6 +135,22 @@ public class Zombie : MonoBehaviour
         {
             Debug.Log($"{_state} -> Trace");
             _state = ZombieState.Trace;
+            return;
+        }
+
+        // 일정 시간 기다렸으면 순찰을 나간다.
+        _idleTimer += Time.deltaTime;
+        if (_idleTimer >= _patrolInterval)
+        {
+            _idleTimer = 0f;
+            _patrolTimer = 0f;
+
+            // 처음 자리 기준 반경 안에서 목표 지점을 정한다. (높이 없음)
+            _patrolTarget = _startPosition + new Vector3(
+                Random.Range(-_patrolRadius, _patrolRadius), 0f, Random.Range(-_patrolRadius, _patrolRadius));
+
+            Debug.Log($"{_state} -> Patrol");
+            _state = ZombieState.Patrol;
         }
     }
 
@@ -167,6 +193,7 @@ public class Zombie : MonoBehaviour
         if (Vector3.Distance(transform.position, _startPosition) < 1f)
         {
             Debug.Log($"{_state} -> Idle");
+            _idleTimer = 0f;
             _state = ZombieState.Idle;
             return;
         }
@@ -199,6 +226,34 @@ public class Zombie : MonoBehaviour
             Debug.Log("플레이어를 때렸습니다.");
             _attackTimer = 0f;
         }
+    }
 
+    // 순찰: 정해둔 목표 지점으로 이동한다.
+    private void Patrol()
+    {
+        // 플레이어가 가까워지면 Trace 상태로 전이한다.
+        if (Vector3.Distance(transform.position, _player.transform.position) <= _detectDistance)
+        {
+            Debug.Log($"{_state} -> Trace");
+            _state = ZombieState.Trace;
+            return;
+        }
+
+        // 목표 지점에 도착했거나 너무 오래 걸리면 Idle로 돌아간다.
+        _patrolTimer += Time.deltaTime;
+        Vector3 direction = _patrolTarget - transform.position;
+        direction.y = 0f;
+        if (direction.magnitude < 1f || _patrolTimer >= _patrolTimeout)
+        {
+            Debug.Log($"{_state} -> Idle");
+            _idleTimer = 0f;
+            _state = ZombieState.Idle;
+            return;
+        }
+
+        direction.Normalize();
+
+        transform.forward = direction;
+        _controller.SimpleMove(direction * _moveSpeed);
     }
 }
