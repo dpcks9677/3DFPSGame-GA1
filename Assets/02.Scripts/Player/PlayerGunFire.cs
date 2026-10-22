@@ -64,10 +64,15 @@ public class PlayerGunFire : MonoBehaviour
         if (isHit)
         {
             //Debug.Log($"{hitInfo.collider.name}이 총알을 맞았다. 데미지: {_damage}");
+
+            // 총알 파티클 생성
             ParticleSystem effect = Instantiate(_hitEffectPrefab);
             effect.transform.position = hitInfo.point;
             effect.transform.forward = hitInfo.normal;
             effect.Play();
+
+            // 피격 대상이 좀비면 TakeDamage() 실행
+            hitInfo.collider.GetComponent<Zombie>()?.TakeDamage(_damage);
         }
     }
 
