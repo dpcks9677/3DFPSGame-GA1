@@ -73,6 +73,7 @@ public class PlayerGunFire : MonoBehaviour
 
             // 피격 대상이 좀비면 TakeDamage() 실행
             hitInfo.collider.GetComponent<Zombie>()?.TakeDamage(_damage);
+            hitInfo.collider.GetComponent<Drum>()?.Damage(_damage);
         }
     }
 

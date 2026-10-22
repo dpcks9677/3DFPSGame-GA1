@@ -21,6 +21,8 @@ public class ListTest : MonoBehaviour
 
         ages2.Add(24);
         ages2.Insert(1, 12);
+        ages2.Remove(40);
+        ages2.RemoveAt(3);
 
         foreach (int age in ages2)
         {
