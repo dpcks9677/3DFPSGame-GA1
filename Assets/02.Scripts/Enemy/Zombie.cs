@@ -23,7 +23,8 @@ public class Zombie : MonoBehaviour, IDamageable
 {
     [Header("스탯")]
     [SerializeField] private float _detectDistance = 8;    // 플레이어를 발견하는 거리
-    [SerializeField] private float _combackDistance = 15;   // 처음 자리에서 이만큼 멀어지면 돌아가는 거리
+    [SerializeField] private float _combackDistance = 15;
+    [SerializeField] private float _attackDamage = 10f;  // 처음 자리에서 이만큼 멀어지면 돌아가는 거리
     [SerializeField] private float _attackRange = 1.5f;     // 공격 범위
     [SerializeField] private float _attackInterval = 1.2f;  // 공격 간격
     [SerializeField] private float _moveSpeed = 5;          // 이동속도
@@ -32,7 +33,6 @@ public class Zombie : MonoBehaviour, IDamageable
     [SerializeField] private float _patrolInterval = 3f;    // Idle에서 이만큼 기다리면 순찰을 나간다.
     [SerializeField] private float _patrolRadius = 10f;     // 처음 자리 기준 순찰 반경
     [SerializeField] private float _patrolTimeout = 5f;     // 순찰이 이 시간을 넘기면 포기하고 Idle로 돌아간다.
-
 
     [Header("이펙트")]
     [SerializeField] private GameObject _bloodSprayPrefab;
@@ -45,9 +45,9 @@ public class Zombie : MonoBehaviour, IDamageable
     private Vector3 _startPosition;
     private GameObject _player;
 
-
     public float MaxHealth => _maxHealth;
     public float Health => _health;
+
 
     private ZombieState _state = ZombieState.Idle;
 
@@ -105,6 +105,7 @@ public class Zombie : MonoBehaviour, IDamageable
         {
             // 좀비의 자식으로 블러드 스프레이를 생성! -> 위치 수정!
             GameObject bloodSpray = Instantiate(_bloodSprayPrefab, transform);
+            //bloodSpray.transform.SetParent(transform);
             bloodSpray.transform.position = damageInfo.HitPoint;
             bloodSpray.transform.forward = damageInfo.HitNormal;
 
@@ -230,6 +231,7 @@ public class Zombie : MonoBehaviour, IDamageable
         {
             Debug.Log($"{_state} -> Trace");
             _state = ZombieState.Trace;
+            return;
         }
 
         _attackTimer += Time.deltaTime;
@@ -237,6 +239,15 @@ public class Zombie : MonoBehaviour, IDamageable
         {
             // Todo. 공격 애니메이션 실행
             // Todo. 플레이어를 때려!
+            DamageInfo damageInfo = new DamageInfo()
+            {
+                Value = _attackDamage,
+                HitPoint = _player.transform.position,
+                HitNormal = (transform.position - _player.transform.position).normalized
+            };
+
+            _player.GetComponent<IDamageable>().TakeDamage(damageInfo);
+
             Debug.Log("플레이어를 때렸습니다.");
             _attackTimer = 0f;
         }
