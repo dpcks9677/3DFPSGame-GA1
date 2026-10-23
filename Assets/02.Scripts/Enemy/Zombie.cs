@@ -27,7 +27,8 @@ public class Zombie : MonoBehaviour, IDamageable
     [SerializeField] private float _attackRange = 1.5f;     // 공격 범위
     [SerializeField] private float _attackInterval = 1.2f;  // 공격 간격
     [SerializeField] private float _moveSpeed = 5;          // 이동속도
-    [SerializeField] private float _health = 30;
+    [SerializeField] private float _maxHealth = 30;
+    [SerializeField] private float _health;
     [SerializeField] private float _patrolInterval = 3f;    // Idle에서 이만큼 기다리면 순찰을 나간다.
     [SerializeField] private float _patrolRadius = 10f;     // 처음 자리 기준 순찰 반경
     [SerializeField] private float _patrolTimeout = 5f;     // 순찰이 이 시간을 넘기면 포기하고 Idle로 돌아간다.
@@ -45,10 +46,15 @@ public class Zombie : MonoBehaviour, IDamageable
     private GameObject _player;
 
 
+    public float MaxHealth => _maxHealth;
+    public float Health => _health;
+
     private ZombieState _state = ZombieState.Idle;
 
     private void Start()
     {
+        _health = _maxHealth;
+
         _controller = GetComponent<CharacterController>();
         _startPosition = transform.position;
 
