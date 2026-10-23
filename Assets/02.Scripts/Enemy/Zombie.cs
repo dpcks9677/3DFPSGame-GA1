@@ -33,6 +33,9 @@ public class Zombie : MonoBehaviour, IDamageable
     [SerializeField] private float _patrolTimeout = 5f;     // 순찰이 이 시간을 넘기면 포기하고 Idle로 돌아간다.
 
 
+    [Header("이펙트")]
+    [SerializeField] private GameObject _bloodSprayPrefab;
+
     private float _attackTimer = 0f;
     private float _idleTimer = 0f;
     private float _patrolTimer = 0f;
@@ -94,6 +97,11 @@ public class Zombie : MonoBehaviour, IDamageable
 
         if (_health > 0f)
         {
+            // 좀비의 자식으로 블러드 스프레이를 생성! -> 위치 수정!
+            GameObject bloodSpray = Instantiate(_bloodSprayPrefab, transform);
+            bloodSpray.transform.position = damageInfo.HitPoint;
+            bloodSpray.transform.forward = damageInfo.HitNormal;
+
             // 잠깐 멈칫 하고 싶다!
             Debug.Log($"{_state} -> Hit");
             _state = ZombieState.Hit;
