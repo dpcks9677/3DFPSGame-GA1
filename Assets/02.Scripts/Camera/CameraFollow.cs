@@ -6,7 +6,10 @@ public class CameraFollow : MonoBehaviour
 
     private void Awake()
     {
-        Debug.LogWarning("[CameraFollow] 카메라 타겟이 없습니다.");
+        if (_target == null)
+        {
+            Debug.LogWarning("[CameraFollow] 카메라 타겟이 없습니다.");
+        }
     }
 
     private void LateUpdate()
