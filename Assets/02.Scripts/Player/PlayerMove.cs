@@ -2,6 +2,7 @@ using UnityEngine;
 
 public class PlayerMove : MonoBehaviour
 {
+    [SerializeField] private float _maxHealth = 100f;
     [SerializeField] private float _moveSpeed = 7f;
     [SerializeField] private float _jumpPower = 7f;
     [SerializeField] private float _dashSpeed = 12f;
@@ -12,7 +13,11 @@ public class PlayerMove : MonoBehaviour
     [SerializeField] private int _validJumpCount = 2;
 
     [SerializeField] private int _stamina = 3;
+    [SerializeField] private int _maxStamina = 5;
     private float _staminaRefillCounter = 0f;
+
+    public float MaxStamina => _maxStamina;
+    public float Stamina => _stamina;
 
     private float _dashTime = 0f;
 
