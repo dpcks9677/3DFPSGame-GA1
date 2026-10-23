@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 // 체력이 0이 되면 위로 튀어오르며 폭발하는 드럼통
 [RequireComponent(typeof(Rigidbody))]
@@ -11,7 +12,8 @@ public class Drum : MonoBehaviour, IDamageable
     [SerializeField] private float _health = 30f;
     [SerializeField] private float _launchPower = 20f;
     [SerializeField] private float _spinPower = 5f;
-    [SerializeField] private float _destoryDelay = 3f;
+    [FormerlySerializedAs("_destoryDelay")]
+    [SerializeField] private float _destroyDelay = 3f;
 
     [SerializeField] private float _explosionRange = 4.5f;
     [SerializeField] private float _explosionDelay = 0.2f;
@@ -55,7 +57,7 @@ public class Drum : MonoBehaviour, IDamageable
         ApplyAreaDamage();
 
         // 3. 딜레이 후 사라진다.
-        yield return new WaitForSeconds(_destoryDelay);
+        yield return new WaitForSeconds(_destroyDelay);
         Destroy(gameObject);
     }
 
