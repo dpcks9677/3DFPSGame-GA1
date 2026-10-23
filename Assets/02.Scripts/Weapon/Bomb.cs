@@ -6,6 +6,8 @@ public class Bomb : MonoBehaviour, IPoolable
 {
     [SerializeField] private ParticleSystem _explosionEffectPrefab;
     [SerializeField] private float _effectLifetime = 3f;
+    [SerializeField] private float _damage = 100f;
+    [SerializeField] private float _explosionRange = 4.5f;
 
     private bool _exploded;
 
@@ -26,8 +28,24 @@ public class Bomb : MonoBehaviour, IPoolable
 
         GameObject effect = LeanPool.Spawn(_explosionEffectPrefab.gameObject, transform.position, Quaternion.identity);
         effect.GetComponent<ParticleSystem>().Play();
+        ApplyAreaDamage();
         LeanPool.Despawn(effect, _effectLifetime);
 
         LeanPool.Despawn(gameObject);
+    }
+
+    private void ApplyAreaDamage()
+    {
+        Collider[] colliders = Physics.OverlapSphere(transform.position, _explosionRange, LayerMask.GetMask("Drum", "Zombie"));
+
+        foreach (Collider col in colliders)
+        {
+            DamageInfo damageInfo = new DamageInfo();
+            damageInfo.Value = _damage;
+            damageInfo.HitPoint = col.ClosestPoint(transform.position);  // 폭발 중심에서 가장 가까운 콜라이더 표면 위치
+            damageInfo.HitNormal = (transform.position - damageInfo.HitPoint).normalized;  // 표면에서 폭발 쪽을 향하는 방향
+
+            col.GetComponent<IDamageable>()?.TakeDamage(damageInfo);
+        }
     }
 }
