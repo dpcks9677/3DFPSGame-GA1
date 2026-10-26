@@ -15,6 +15,8 @@ public class PlayerBombFire : MonoBehaviour
 
     private void Update()
     {
+        if (GameManager.Instance.State != GameState.Playing) { return; }
+
         if (Input.GetButton("Fire2"))
         {
             _chargePower += Time.deltaTime * 5;

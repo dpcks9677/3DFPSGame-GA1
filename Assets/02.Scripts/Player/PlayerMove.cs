@@ -36,6 +36,8 @@ public class PlayerMove : MonoBehaviour
 
     private void Update()
     {
+        if (GameManager.Instance.State != GameState.Playing) return;
+
         // 0. 스테미너 리필 카운터
         if (_stamina < 5)
         {

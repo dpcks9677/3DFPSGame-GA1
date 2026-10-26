@@ -20,6 +20,7 @@ public class PlayerGunFire : MonoBehaviour
 
     private void Update()
     {
+        if (GameManager.Instance.State != GameState.Playing) return;
         // Ray: 레이저(시작위치 ,날아갈 방향)
         // Physics.RayCast(): 레이저 발사
         // RayCastHit: 레이저와 물체가 부딪히면

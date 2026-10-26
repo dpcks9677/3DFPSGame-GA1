@@ -6,10 +6,12 @@ public class ZombieHealthBar : MonoBehaviour
     [SerializeField] private Slider _slider;
 
     private Zombie _zombie;
+    private Transform _canvasTransform;
 
     private void Awake()
     {
         _zombie = GetComponent<Zombie>();
+        _canvasTransform = _slider.GetComponentInParent<Canvas>().transform;
     }
 
     private void LateUpdate()
@@ -19,6 +21,6 @@ public class ZombieHealthBar : MonoBehaviour
         _slider.value = _zombie.Health / _zombie.MaxHealth;
 
         // 빌보드: 체력바가 카메라를 쳐다보게한다.
-        transform.forward = Camera.main.transform.forward;
+        _canvasTransform.forward = Camera.main.transform.forward;
     }
 }

@@ -29,6 +29,7 @@ public class Player : MonoBehaviour, IDamageable
         if (_health <= 0f)
         {
             Debug.Log("플레이어 사망");
+            GameManager.Instance.GameOver();
         }
     }
 }
