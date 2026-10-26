@@ -13,7 +13,7 @@ public class Player : MonoBehaviour, IDamageable
     // Action 자료형은 함수들을 저장할 수 있다.
     public event Action OnDamaged = null;
 
-    private void Start()
+    private void Awake()
     {
         _health = _maxHealth;
     }
