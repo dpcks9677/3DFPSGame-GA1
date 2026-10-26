@@ -20,6 +20,15 @@ public class ZombieHealthBar : MonoBehaviour
         RefreshHealth();
     }
 
+    // 풀에서 다시 꺼내질 때 Start는 다시 실행되지 않으므로 체력바를 갱신한다.
+    private void OnEnable()
+    {
+        if (_zombie != null)
+        {
+            RefreshHealth();
+        }
+    }
+
     private void RefreshHealth()
     {
         // 0 ~ 100% -> 0 ~ 1

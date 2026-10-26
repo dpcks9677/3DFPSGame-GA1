@@ -1,4 +1,6 @@
 using System.Collections;
+using System.Collections.Generic;
+using Lean.Pool;
 using UnityEngine;
 
 // FSM(유한 상태 머신) : 유한개의 상태가 있고, 상태마다 행동을 다르게 함으로써 AI를 구현하는 유명한 방법
@@ -19,7 +21,7 @@ public enum ZombieState
     Patrol
 }
 
-public class Zombie : MonoBehaviour, IDamageable
+public class Zombie : MonoBehaviour, IDamageable, IPoolable
 {
     [Header("스탯")]
     [SerializeField] private float _detectDistance = 8;    // 플레이어를 발견하는 거리
@@ -55,21 +57,62 @@ public class Zombie : MonoBehaviour, IDamageable
 
     private ZombieState _state = ZombieState.Idle;
 
+    // 풀에서 꺼내진 좀비는 죽으면 Destroy 대신 풀로 반납한다. (씬에 직접 둔 좀비는 false)
+    private bool _pooled = false;
+    private readonly List<GameObject> _bloodSprays = new List<GameObject>();
+
     private void Awake()
     {
+        _controller = GetComponent<CharacterController>();
+
         // 구독자가 Start에서 체력을 읽어도 되도록 Awake에서 초기화한다.
         _health = _maxHealth;
     }
 
     private void Start()
     {
-        _controller = GetComponent<CharacterController>();
-        _startPosition = transform.position;
+        // 씬에 직접 둔 좀비는 여기서 초기화한다. (풀에서 꺼낸 좀비는 OnSpawn에서 이미 초기화했다.)
+        if (!_pooled)
+        {
+            Init();
+        }
+    }
 
-        ZombieManager.Instance.Register();
+    // 풀에서 꺼내질 때마다 호출된다.
+    public void OnSpawn()
+    {
+        _pooled = true;
+        Init();
+    }
+
+    // 풀로 반납될 때 다음 사용을 위해 체력과 남은 이펙트를 정리한다.
+    public void OnDespawn()
+    {
+        foreach (GameObject bloodSpray in _bloodSprays)
+        {
+            Destroy(bloodSpray);
+        }
+        _bloodSprays.Clear();
+        _health = _maxHealth;
+    }
+
+    // 상태를 처음으로 되돌린다.
+    private void Init()
+    {
+        _state = ZombieState.Idle;
+        _attackTimer = 0f;
+        _idleTimer = 0f;
+        _patrolTimer = 0f;
+        _startPosition = transform.position;
+        _controller.enabled = true;
 
         // 게임을 시작하면 플레이어를 찾는다.
-        _player = GameObject.FindGameObjectWithTag("Player");
+        if (_player == null)
+        {
+            _player = GameObject.FindGameObjectWithTag("Player");
+        }
+
+        ZombieManager.Instance.Register();
     }
 
 
@@ -122,6 +165,7 @@ public class Zombie : MonoBehaviour, IDamageable
             //bloodSpray.transform.SetParent(transform);
             bloodSpray.transform.position = damageInfo.HitPoint;
             bloodSpray.transform.forward = damageInfo.HitNormal;
+            _bloodSprays.Add(bloodSpray);
 
             // 잠깐 멈칫 하고 싶다!
             Debug.Log($"{_state} -> Hit");
@@ -151,7 +195,15 @@ public class Zombie : MonoBehaviour, IDamageable
     {
         _controller.enabled = false;
         yield return new WaitForSeconds(0.5f);
-        Destroy(gameObject);
+
+        if (_pooled)
+        {
+            LeanPool.Despawn(gameObject);
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
     }
 
     // 대기: 제자리에서 플레이어를 기다린다.
