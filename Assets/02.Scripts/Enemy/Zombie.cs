@@ -66,6 +66,8 @@ public class Zombie : MonoBehaviour, IDamageable
         _controller = GetComponent<CharacterController>();
         _startPosition = transform.position;
 
+        ZombieManager.Instance.Register();
+
         // 게임을 시작하면 플레이어를 찾는다.
         _player = GameObject.FindGameObjectWithTag("Player");
     }
@@ -130,6 +132,7 @@ public class Zombie : MonoBehaviour, IDamageable
         {
             Debug.Log($"{_state} -> Death");
             _state = ZombieState.Death;
+            ZombieManager.Instance.Unregister();
             StartCoroutine(Death_Coroutine());
         }
 
