@@ -18,6 +18,20 @@ public class UI_HitEffect : MonoBehaviour
         SetAlpha(0f);
     }
 
+    private void Start()
+    {
+        Player player = GameObject.FindAnyObjectByType<Player>();
+        if (player != null)
+        {
+            player.OnDamaged += OnPlayerDamaged;
+        }
+    }
+
+    private void OnPlayerDamaged()
+    {
+        Flash();
+    }
+
     public void Flash()
     {
         // 연속으로 맞으면 진행 중인 연출을 끊고 처음부터 다시 시작한다.
