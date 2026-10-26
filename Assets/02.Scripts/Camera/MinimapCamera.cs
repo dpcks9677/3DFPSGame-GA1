@@ -33,4 +33,7 @@ public class MinimapCamera : MonoBehaviour
         // 2. 아래를 보되, 대상이 보는 쪽이 미니맵의 위쪽이 되게 돌린다.
         transform.eulerAngles = new Vector3(90f, _target.eulerAngles.y, 0f);
     }
+
+    // TODO. +- 버튼 누르면 ZOOM IN, OUT 기능
+
 }
