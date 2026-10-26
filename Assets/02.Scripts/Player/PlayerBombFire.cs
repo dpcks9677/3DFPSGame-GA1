@@ -15,7 +15,9 @@ public class PlayerBombFire : MonoBehaviour
 
     private void Update()
     {
-        if (GameManager.Instance.State != GameState.Playing) { return; }
+        bool isMouseVisible = Cursor.visible;
+
+        if (!isMouseVisible && GameManager.Instance.State != GameState.Playing) { return; }
 
         if (Input.GetButton("Fire2"))
         {
