@@ -49,12 +49,20 @@ public class Zombie : MonoBehaviour, IDamageable
     public float Health => _health;
 
 
+    // 대미지를 받을 때마다 구독자(체력바 등)에게 알린다.
+    // (using System 하면 Random이 UnityEngine.Random과 모호해지므로 System.Action으로 쓴다.)
+    public event System.Action OnDamaged = null;
+
     private ZombieState _state = ZombieState.Idle;
+
+    private void Awake()
+    {
+        // 구독자가 Start에서 체력을 읽어도 되도록 Awake에서 초기화한다.
+        _health = _maxHealth;
+    }
 
     private void Start()
     {
-        _health = _maxHealth;
-
         _controller = GetComponent<CharacterController>();
         _startPosition = transform.position;
 
@@ -100,6 +108,8 @@ public class Zombie : MonoBehaviour, IDamageable
         }
 
         _health -= damageInfo.Value;
+
+        OnDamaged?.Invoke();
 
         StopAllCoroutines();
 
