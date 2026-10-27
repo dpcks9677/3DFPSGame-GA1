@@ -1,124 +1,118 @@
 using System.Collections;
-using System.Threading.Tasks;
-using Unity.VisualScripting;
 using UnityEngine;
 
+
+// 마우스 왼쪽 버튼을 누르면 바라보는 방향으로 총알을 발사하고 싶다.
 public class PlayerGunFire : MonoBehaviour
 {
     [SerializeField] private ParticleSystem _hitEffectPrefab;
 
-    [Header("레이저")]
-    [SerializeField] private LineRenderer _laser;
-    [SerializeField] private Vector3 _laserOffset = new Vector3(0.2f, -0.2f, 0.5f);  // 카메라 기준 레이저 시작 위치
-    [SerializeField] private float _laserDuration = 0.05f;
-
     [Header("스탯")]
-    [SerializeField] private float _range = 100f;
-    [SerializeField] private float _damage = 10f;
-    [SerializeField] private float _fireInterval = 0.1f;
-    [SerializeField] private const int MAX_MAGAZINE = 30;
-    [SerializeField] private float _reloatingTime = 3f;
-    private int _magazine = MAX_MAGAZINE;
+    [SerializeField] private int _maxBulletCount = 30;
+    [SerializeField] private float _reloadingTime = 3f;
+    [SerializeField] private float _range = 100f;            // 사거리
+    [SerializeField] private float _damage = 10f;            // 공격력
+    [SerializeField] private float _fireInterval = 0.1f;     // 발사 속도
+
     private float _fireTimer = 0f;
-    private Awaitable _reloadAwaitable = null;
-    private Coroutine _laserCoroutine = null;
+    private int _bulletCount = 0;
+    private Coroutine _reloadCoroutine = null;
+
+
+    private void Start()
+    {
+        _bulletCount = _maxBulletCount;
+    }
 
 
     private void Update()
     {
         if (GameManager.Instance.State != GameState.Playing) return;
-        // Ray: 레이저(시작위치 ,날아갈 방향)
-        // Physics.RayCast(): 레이저 발사
-        // RayCastHit: 레이저와 물체가 부딪히면
 
-        // 0. 발사 타이머를 지난시간만큼 줄인다
+        // 0. 발사 타이머를 지난 시간만큼 줄인다.
         _fireTimer -= Time.deltaTime;
 
+        // 1. 마우스 왼쪽 버튼 입력 받기
         bool isMouseVisible = Cursor.visible;
-
-        // 1. 좌클릭 입력 받기
-        if (!isMouseVisible && Input.GetButton("Fire1") && _fireTimer <= 0f && _magazine > 0)
+        if (!isMouseVisible && Input.GetButton("Fire1") && _fireTimer <= 0f && _bulletCount > 0)
         {
+            _bulletCount--;
             _fireTimer = _fireInterval;
             Shoot();
-            _magazine--;
-            Debug.Log($"남은 탄창: {_magazine}");
 
-            if (_reloadAwaitable != null)
+            // 이 방식은: 이 모노비헤이비어가 등록한 모든 코루틴을 실행 취소
+            // StopAllCoroutines();
+
+            if (_reloadCoroutine != null)
             {
-                _reloadAwaitable.Cancel();
-                Debug.Log("재장전 취소됨");
-                _reloadAwaitable = null;
+                StopCoroutine(_reloadCoroutine);
+                Debug.Log("재장전 취소!");
+                _reloadCoroutine = null;
             }
         }
 
-        // 5. 재장전
-        if (Input.GetButtonDown("Reload") && _reloadAwaitable == null)
+        // 2. R키 누르면 총알 재장전 시작
+        if (Input.GetKeyDown(KeyCode.R) && _reloadCoroutine == null)
         {
-            ReloadingAsync();
+            _reloadCoroutine = StartCoroutine(Reloading_Coroutine());
         }
     }
 
+    private IEnumerator Reloading_Coroutine()
+    {
+        Debug.Log("재장전 시작!");
+
+        yield return new WaitForSeconds(_reloadingTime);
+
+        _bulletCount = _maxBulletCount;
+
+        Debug.Log("재장전 완료!");
+        _reloadCoroutine = null;
+    }
+
+
     private void Shoot()
     {
-        Transform cameraTransfrom = Camera.main.transform;
-        // 2. 레이 생성 후 발사될 위치와 진행방향 설정
-        Ray ray = new Ray(cameraTransfrom.position, cameraTransfrom.forward);
+        // Ray: 레이저(시작위치, 날아갈 방향)
+        // Physics.RayCast: 레이저를 발사
+        // RayCastHit: 레이저가 물체와 부딛히면 그 정보를 저장하는 구조체
 
-        // 3. 레이가 부딪힌 대상의 정보를 저장하기
+        // 2. 레이(광선)를 생성하고 발사될 위치와 진행 방향 설정하기
+        Transform cameraTransform = Camera.main.transform;
+        Ray ray = new Ray(cameraTransform.position, cameraTransform.forward);
+
+        // 3. 레이가 부딛힌 대상의 정보를 저장할 변수 생성하기
         RaycastHit hitInfo = new RaycastHit();
 
-        // 4. 레이를 발사하고 부딪힌 물체가 있다면 이펙트 표시
+        // 4. 레이를 발사하고, 만일 부딛힌 물체가 있다면 이펙트 표시하기
         bool isHit = Physics.Raycast(ray, out hitInfo, _range);
-
-        Vector3 laserEnd = isHit ? hitInfo.point : ray.origin + ray.direction * _range;
-        ShowLaser(cameraTransfrom.TransformPoint(_laserOffset), laserEnd);
-
         if (isHit)
         {
-            //Debug.Log($"{hitInfo.collider.name}이 총알을 맞았다. 데미지: {_damage}");
+            // Debug.Log($"{hitInfo.collider.name}이 총알을 맞았다. 대미지: {_damage}");
 
-            // 총알 파티클 생성
+            // 맞은 자리에 총알 자국 이펙트 만들기
             ParticleSystem effect = Instantiate(_hitEffectPrefab);
-            effect.transform.position = hitInfo.point;
-            effect.transform.forward = hitInfo.normal;
+            effect.transform.position = hitInfo.point; // 맞은 자리
+            effect.transform.forward = hitInfo.normal; // 수직 위치로 회전
             effect.Play();
 
+            // 대미지 구조체 만들기
             DamageInfo damageInfo = new DamageInfo();
             damageInfo.Value = _damage;
             damageInfo.HitPoint = hitInfo.point;
             damageInfo.HitNormal = hitInfo.normal;
 
-            // 피격 대상이 좀비면 TakeDamage() 실행
             hitInfo.collider.GetComponent<IDamageable>()?.TakeDamage(damageInfo);
+
+            /*
+             hitInfo.collider.GetComponent<Zombie>()?.TakeDamage(_damage);
+            hitInfo.collider.GetComponent<Drum>()?.TakeDamage(_damage);
+            hitInfo.collider.GetComponent<Box>()?.TakeDamage(_damage);
+            */
+
+            // 황유찬 :         Player
+            // 김민쉬:     Zombie, Boss
+            // 박현서:  Drum, Box, Bird
         }
-    }
-
-    private void ShowLaser(Vector3 start, Vector3 end)
-    {
-        _laser.SetPosition(0, start);
-        _laser.SetPosition(1, end);
-        _laser.enabled = true;
-
-        if (_laserCoroutine != null)
-        {
-            StopCoroutine(_laserCoroutine);
-        }
-        _laserCoroutine = StartCoroutine(HideLaser_Coroutine());
-    }
-
-    private IEnumerator HideLaser_Coroutine()
-    {
-        yield return new WaitForSeconds(_laserDuration);
-        _laser.enabled = false;
-        _laserCoroutine = null;
-    }
-
-    private async Awaitable ReloadingAsync()
-    {
-        await Awaitable.WaitForSecondsAsync(_reloatingTime);
-        _magazine = MAX_MAGAZINE;
-        Debug.Log("장전완료");
-        _reloadAwaitable = null;
     }
 }

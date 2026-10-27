@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using TMPro;
 using UnityEngine;
@@ -18,6 +19,7 @@ public class GameManager : MonoBehaviour
     public GameState State => _state;
 
     [SerializeField] private TextMeshProUGUI _stateText;
+
 
     private void Awake()
     {
@@ -40,8 +42,7 @@ public class GameManager : MonoBehaviour
         _stateText.gameObject.SetActive(true);
         _stateText.text = "준비";
         yield return new WaitForSeconds(1.5f);
-
-        _stateText.text = "시작";
+        _stateText.text = "시작!";
         yield return new WaitForSeconds(0.5f);
         _stateText.gameObject.SetActive(false);
 
@@ -51,8 +52,10 @@ public class GameManager : MonoBehaviour
     public void GameOver()
     {
         _state = GameState.GameOver;
+
         _stateText.gameObject.SetActive(true);
-        _stateText.text = "게임 오버";
+        _stateText.text = "게임오버";
         _stateText.color = Color.red;
     }
+
 }

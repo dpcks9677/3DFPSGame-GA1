@@ -1,22 +1,22 @@
 using UnityEngine;
+using UnityEngine.UI;
 
+// 미니맵 UI: +/- 버튼을 누르면 미니맵 카메라를 확대/축소한다.
 public class UI_Minimap : MonoBehaviour
 {
-    [SerializeField] private Camera _minimapCamera;
+    [SerializeField] private MinimapCamera _minimapCamera;
+    [SerializeField] private Button _zoomInButton;
+    [SerializeField] private Button _zoomOutButton;
 
-    [SerializeField] private float _zoomStep = 1f;
-    [SerializeField] private float _minSize = 4f;
-    [SerializeField] private float _maxSize = 16f;
-
-    public void ZoomOut()
+    private void Start()
     {
-        float size = _minimapCamera.orthographicSize + _zoomStep;
-        _minimapCamera.orthographicSize = Mathf.Min(size, _maxSize);
+        _zoomInButton.onClick.AddListener(_minimapCamera.ZoomIn);
+        _zoomOutButton.onClick.AddListener(_minimapCamera.ZoomOut);
     }
 
-    public void ZoomIn()
+    private void OnDestroy()
     {
-        float size = _minimapCamera.orthographicSize - _zoomStep;
-        _minimapCamera.orthographicSize = Mathf.Max(size, _minSize);
+        _zoomInButton.onClick.RemoveListener(_minimapCamera.ZoomIn);
+        _zoomOutButton.onClick.RemoveListener(_minimapCamera.ZoomOut);
     }
 }

@@ -1,147 +1,90 @@
 using UnityEngine;
 
+// 키보드 방향키에 따라 그 방향으로 이동하고 싶다.
 public class PlayerMove : MonoBehaviour
 {
-    [SerializeField] private float _maxHealth = 100f;
-    [SerializeField] private float _moveSpeed = 7f;
-    [SerializeField] private float _jumpPower = 7f;
-    [SerializeField] private float _dashSpeed = 12f;
+    private const float Gravity = -20f;
+    private const int MaxJumps = 2;
+    public const float MaxStamina = 100f;
 
-    private const float Gravity = -20f; // 중력 가속도
-    private float _yVelocity = 0f; // 떨어지는 속도
+    private float _yVelocity = 0f;  // 위아래 속도, 매 프레임마다 중력 가속도가 붙는다.
+    private int _jumpCount = 0;   // 점프 횟수
+    private float _stamina = 0f;
 
-    [SerializeField] private int _validJumpCount = 2;
-
-    [SerializeField] private int _stamina = 3;
-    [SerializeField] private int _maxStamina = 5;
-    private float _staminaRefillCounter = 0f;
-
-    public float MaxStamina => _maxStamina;
     public float Stamina => _stamina;
 
-    private float _dashTime = 0f;
+    [Header("스탯")]
+    [SerializeField] private float _moveSpeed = 7f;
+    [SerializeField] private float _sprintSpeed = 12f;
+    [SerializeField] private float _jumpPower = 10f;
+    [SerializeField] private float _staminaRecovery = 15f;
+    [SerializeField] private float _sprintCost = 10f;
+    [SerializeField] private float _jumpCost = 20f;
 
+
+    [Header("컴포넌트")]
     [SerializeField] private CharacterController _characterController;
-
-
-    // 코요테 타임 변수
-    [SerializeField] private float _coyoteTime = 0.12f; // 인스펙터에서 튜닝
-    private float _coyoteCounter = 0f;
-    private bool _wasGrounded = true;
 
     private void Awake()
     {
         _characterController = GetComponent<CharacterController>();
+        _stamina = MaxStamina;
     }
 
     private void Update()
     {
         if (GameManager.Instance.State != GameState.Playing) return;
 
-        // 0. 스테미너 리필 카운터
-        if (_stamina < 5)
-        {
-            _staminaRefillCounter += Time.deltaTime;
-            if (_staminaRefillCounter >= 3f)
-            {
-                addStamina(1);
-                _staminaRefillCounter = 0f;
-            }
-        }
-        else
-        {
-            _staminaRefillCounter = 0f;
-        }
+        // 0. 스태미나 회복
+        _stamina = Mathf.Min(MaxStamina, _stamina + _staminaRecovery * Time.deltaTime);
 
-        // 1. 키보드 입력을 받는다
-        float h = Input.GetAxisRaw("Horizontal");
-        float v = Input.GetAxisRaw("Vertical");
+        // 1. 키보드 입력을 받는다.
+        float h = Input.GetAxisRaw("Horizontal"); // -1, 0, 1
+        float v = Input.GetAxisRaw("Vertical"); // -1, 0, 1
 
         // 2. 키보드 입력에 따라 방향을 구한다.
         Vector3 direction = new Vector3(h, 0, v);
-        direction.Normalize();
-
-        // 좌표계를 월드 좌표계로 변경
+        direction.Normalize(); // 대각선이어도 방향의 길이 1로 바꾸기 위해
+        // 캐릭터의 회전 방향을 기준으로 로컬 방향 벡터를 월드 방향 벡터로 변환한다.
         direction = transform.TransformDirection(direction);
+        // 로컬 좌표계: 한 대상을 중심
+        // 월드 좌표계: 세상을 중심
 
-        // 3. 중력 누적 (바닥에 닿으면 속도 초기화)
-        if (_characterController.isGrounded && _yVelocity < 0f)
+        // 3. 땅에 서있지 않을때만 중력을 누적한다.
+        if (_characterController.isGrounded == false)
         {
-            _yVelocity = -2f; // 바닥에 붙어 있게 살짝 눌러줌
-            _validJumpCount = 2;
-        }
-        _yVelocity += Gravity * Time.deltaTime;
-
-        // 코요테 타임
-        bool grounded = _characterController.isGrounded;
-
-        if (grounded)
-        {
-            _coyoteCounter = _coyoteTime;   // 바닥에 있으면 계속 리필
-            if (_yVelocity < 0f)
-            {
-                _yVelocity = -2f;
-                _validJumpCount = 2;
-            }
+            _yVelocity += Gravity * Time.deltaTime;
         }
         else
         {
-            _coyoteCounter -= Time.deltaTime;
-
-            // 점프 없이 바닥을 벗어난 첫 프레임 → 지상 점프 1회분 소모
-            if (_wasGrounded && _yVelocity <= 0f)
-                _validJumpCount = Mathf.Min(_validJumpCount, 1);
+            // 땅에 서있으면 중력/점프 초기화
+            _yVelocity = -1f;
+            _jumpCount = 0;
         }
-        _wasGrounded = grounded;
 
-
-
-        // 4. 점프
-        if (Input.GetButtonDown("Jump") && _stamina > 0)
+        // 4. 만약에 점프키를 누르면 && 점프 카운트가 MaxJumps 이하라면 ... 점프를한다.
+        if (Input.GetButtonDown("Jump") && _jumpCount < MaxJumps && _stamina >= _jumpCost)
         {
-            bool coyoteJump = _coyoteCounter > 0f;
-
-            if (coyoteJump || _validJumpCount > 0)
-            {
-                _yVelocity = _jumpPower;    // += 가 아니라 = (아래 주의 참고)
-                _coyoteCounter = 0f;        // 코요테 점프 중복 방지
-                if (!coyoteJump) _validJumpCount--;
-                else _validJumpCount = Mathf.Max(0, _validJumpCount - 1);
-                addStamina(-1);
-            }
+            _yVelocity = _jumpPower;
+            _jumpCount++;
+            _stamina -= _jumpCost;
         }
 
-
-        Vector3 velocity;
-
-        // 5. 속도를 구한다
-        if (Input.GetKey(KeyCode.LeftShift) && _stamina > 0)
+        // 5. 속도를 구한다.
+        float requiredStamina = _sprintCost * Time.deltaTime;
+        bool isSprint = Input.GetButton("Sprint") && _stamina > requiredStamina;
+        float currentSpeed = _moveSpeed;
+        if (isSprint)
         {
-            _dashTime += Time.deltaTime;
-            velocity = direction * _dashSpeed; // 대쉬
-        }
-        else
-        {
-            velocity = direction * _moveSpeed; // 일반
+            currentSpeed = _sprintSpeed;
+            _stamina -= requiredStamina;
         }
 
-        // 5-1 대쉬 시 스테미나 감소 로직
-        if (_dashTime >= 1f)
-        {
-            addStamina(-1);
-            _dashTime = 0f;
-        }
-
+        Vector3 velocity = direction * currentSpeed;
         velocity.y = _yVelocity;
 
-        // 6. 방향과 속력에 따라 이동한다.
+        // 6. 속도(방향과 속력)에 따라 이동한다.
+        // transform.position += direction * _moveSpeed * Time.deltaTime;
         _characterController.Move(velocity * Time.deltaTime);
-
-    }
-
-    private void addStamina(int value)
-    {
-        _stamina += value;
-        Debug.Log($"stamina: {_stamina}");
     }
 }
