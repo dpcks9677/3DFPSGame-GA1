@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Lean.Pool;
 using UnityEngine;
+using UnityEngine.AI;
 
 // FSM(유한 상태 머신) : 유한개의 상태가 있고, 상태마다 행동을 다르게 함으로써 AI를 구현하는 유명한 방법
 // - "상태": 객체가 가질 수 있는 어떤 조건이나 상황
@@ -21,6 +22,7 @@ public enum ZombieState
     Patrol
 }
 
+[RequireComponent(typeof(NavMeshAgent))]
 public class Zombie : MonoBehaviour, IDamageable, IPoolable
 {
     [Header("스탯")]
@@ -42,6 +44,7 @@ public class Zombie : MonoBehaviour, IDamageable, IPoolable
     private CharacterController _controller;
     private Vector3 _startPosition;
     private GameObject _player;
+    private NavMeshAgent _agent;
 
     public float MaxHealth => _maxHealth;
     public float Health => _health;
@@ -95,6 +98,9 @@ public class Zombie : MonoBehaviour, IDamageable, IPoolable
         {
             Init();
         }
+
+        _agent = GetComponent<NavMeshAgent>();
+        _agent.speed = _moveSpeed;
     }
 
     // 풀에서 꺼내질 때마다 호출된다.
@@ -156,12 +162,8 @@ public class Zombie : MonoBehaviour, IDamageable, IPoolable
     // 목표 지점을 향해 바라보며 이동한다. (높이 무시)
     public void MoveToward(Vector3 target)
     {
-        Vector3 direction = target - transform.position;
-        direction.y = 0f;
-        direction.Normalize();
 
-        transform.forward = direction;
-        _controller.SimpleMove(direction * _moveSpeed);
+        _agent.SetDestination(_player.transform.position);
     }
 
     // 대미지를 받는다.

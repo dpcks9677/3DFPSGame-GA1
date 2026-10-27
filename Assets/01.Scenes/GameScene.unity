@@ -5074,6 +5074,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: Zombie
       objectReference: {fileID: 0}
+    - target: {fileID: 1576858312488375086, guid: 253a759ebc991e940aa3bc631ffd838d, type: 3}
+      propertyPath: _detectDistance
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 1576858312488375086, guid: 253a759ebc991e940aa3bc631ffd838d, type: 3}
+      propertyPath: _combackDistance
+      value: 30
+      objectReference: {fileID: 0}
     - target: {fileID: 3368968920175124875, guid: 253a759ebc991e940aa3bc631ffd838d, type: 3}
       propertyPath: m_AnchorMax.x
       value: 0
