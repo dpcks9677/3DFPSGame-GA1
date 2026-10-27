@@ -115,12 +115,14 @@ public class Zombie : MonoBehaviour, IDamageable
 
             // 잠깐 멈칫 하고 싶다!
             Debug.Log($"{_state} -> Hit");
+            _animator.SetTrigger("Hit");
             _state = ZombieState.Hit;
             StartCoroutine(Hit_Coroutine());
         }
         else
         {
             Debug.Log($"{_state} -> Death");
+            _animator.SetTrigger("Death");
             _state = ZombieState.Death;
             Died?.Invoke(this);
             StartCoroutine(Death_Coroutine());
@@ -131,7 +133,7 @@ public class Zombie : MonoBehaviour, IDamageable
     private IEnumerator Hit_Coroutine()
     {
         StopAgent();
-        yield return new WaitForSeconds(0.3f); // 잠깐 멈칫한다!
+        yield return new WaitForSeconds(0.5f); // 잠깐 멈칫한다!
 
         // 맞았으니 쫒아온다.
         Debug.Log($"{_state} -> Trace");
@@ -141,7 +143,7 @@ public class Zombie : MonoBehaviour, IDamageable
     private IEnumerator Death_Coroutine()
     {
         StopAgent();
-        yield return new WaitForSeconds(0.5f);
+        yield return new WaitForSeconds(2f);
         Destroy(gameObject);
     }
 
@@ -223,17 +225,20 @@ public class Zombie : MonoBehaviour, IDamageable
         {
             _animator.SetTrigger("StartAttack");
 
-            DamageInfo info = new DamageInfo()
-            {
-                Value = _attackDamage,
-                HitPoint = _player.transform.position,
-                HitNormal = (transform.position - _player.transform.position).normalized,
-            };
-
-            _player.GetComponent<IDamageable>().TakeDamage(info);
-
             _attackTimer = 0f;
         }
+    }
+
+    public void AttackAction()
+    {
+        DamageInfo info = new DamageInfo()
+        {
+            Value = _attackDamage,
+            HitPoint = _player.transform.position,
+            HitNormal = (transform.position - _player.transform.position).normalized,
+        };
+
+        _player.GetComponent<IDamageable>().TakeDamage(info);
     }
 
     private void StopAgent()
