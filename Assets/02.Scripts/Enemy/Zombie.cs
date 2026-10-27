@@ -41,7 +41,6 @@ public class Zombie : MonoBehaviour, IDamageable, IPoolable
     [Header("이펙트")]
     [SerializeField] private GameObject _bloodSprayPrefab;
 
-    private CharacterController _controller;
     private Vector3 _startPosition;
     private GameObject _player;
     private NavMeshAgent _agent;
@@ -79,7 +78,8 @@ public class Zombie : MonoBehaviour, IDamageable, IPoolable
 
     private void Awake()
     {
-        _controller = GetComponent<CharacterController>();
+        _agent = GetComponent<NavMeshAgent>();
+        _agent.speed = _moveSpeed;
 
         _states[ZombieState.Idle] = new ZombieIdleState(this);
         _states[ZombieState.Patrol] = new ZombiePatrolState(this);
@@ -98,9 +98,6 @@ public class Zombie : MonoBehaviour, IDamageable, IPoolable
         {
             Init();
         }
-
-        _agent = GetComponent<NavMeshAgent>();
-        _agent.speed = _moveSpeed;
     }
 
     // 풀에서 꺼내질 때마다 호출된다.
@@ -125,7 +122,7 @@ public class Zombie : MonoBehaviour, IDamageable, IPoolable
     private void Init()
     {
         _startPosition = transform.position;
-        _controller.enabled = true;
+        _agent.enabled = true;
 
         // 게임을 시작하면 플레이어를 찾는다.
         if (_player == null)
@@ -163,7 +160,14 @@ public class Zombie : MonoBehaviour, IDamageable, IPoolable
     public void MoveToward(Vector3 target)
     {
 
-        _agent.SetDestination(_player.transform.position);
+        _agent.SetDestination(target);
+    }
+
+    // 경로를 지우고 그 자리에 멈춘다. (에이전트가 켜져 있을 때만 호출해야 한다.)
+    private void StopAgent()
+    {
+        _agent.ResetPath();
+        _agent.velocity = Vector3.zero;
     }
 
     // 대미지를 받는다.
@@ -206,13 +210,16 @@ public class Zombie : MonoBehaviour, IDamageable, IPoolable
     {
         yield return new WaitForSeconds(0.3f); // 잠깐 멈칫한다!
 
+        StopAgent();
+
         // 맞았으니 쫒아온다.
         ChangeState(ZombieState.Trace);
     }
 
     private IEnumerator Death_Coroutine()
     {
-        _controller.enabled = false;
+        StopAgent();
+        _agent.enabled = false;
         yield return new WaitForSeconds(0.5f);
 
         if (_pooled)
