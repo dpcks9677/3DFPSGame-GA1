@@ -19,6 +19,7 @@ public class GameManager : MonoBehaviour
     public GameState State => _state;
 
     [SerializeField] private TextMeshProUGUI _stateText;
+    [SerializeField] private Animator _playerAnimator; // 게임 오버 때 군인을 서 있는 동작으로 돌린다.
 
 
     private void Awake()
@@ -34,6 +35,15 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
+        if (_playerAnimator == null)
+        {
+            var player = GameObject.FindWithTag("Player");
+            if (player != null)
+            {
+                _playerAnimator = player.GetComponentInChildren<Animator>();
+            }
+        }
+
         StartCoroutine(StartSequence_Coroutine());
     }
 
@@ -56,6 +66,11 @@ public class GameManager : MonoBehaviour
         _stateText.gameObject.SetActive(true);
         _stateText.text = "게임오버";
         _stateText.color = Color.red;
+
+        if (_playerAnimator != null)
+        {
+            _playerAnimator.SetFloat("MoveMotion", 0f);
+        }
     }
 
 }
