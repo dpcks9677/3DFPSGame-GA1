@@ -18,50 +18,56 @@ public class PlayerGunFire : MonoBehaviour
     private int _bulletCount = 0;
     private Coroutine _reloadCoroutine = null;
     private Animator _animator;
+    private PlayerBombFire _bombFire;
 
     private void Start()
     {
         _bulletCount = _maxBulletCount;
         _animator = GetComponentInChildren<Animator>();
+        _bombFire = GetComponent<PlayerBombFire>();
     }
 
 
     private void Update()
     {
-        if (GameManager.Instance.State != GameState.Playing) return;
-
-        // 0. 발사 타이머를 지난 시간만큼 줄인다.
-        _fireTimer -= Time.deltaTime;
-
-        // 1. 마우스 왼쪽 버튼 입력 받기
-        bool isMouseVisible = Cursor.visible;
-        if (!isMouseVisible && Input.GetButton("Fire1") && _fireTimer <= 0f && _bulletCount > 0)
+        // 게임 중이 아니면 쏘는 동작을 멈추고 아무것도 하지 않는다.
+        if (GameManager.Instance.State != GameState.Playing)
         {
-            _bulletCount--;
-            _fireTimer = _fireInterval;
-            Shoot();
-
-            // 서 있을 때(MoveMotion이 0)만 쏘는 동작을 한다.
-            if (_animator.GetFloat("MoveMotion") == 0f)
-            {
-                _animator.SetTrigger("Attack");
-            }
-            // 이 방식은: 이 모노비헤이비어가 등록한 모든 코루틴을 실행 취소
-            // StopAllCoroutines();
-
-            if (_reloadCoroutine != null)
-            {
-                StopCoroutine(_reloadCoroutine);
-                Debug.Log("재장전 취소!");
-                _reloadCoroutine = null;
-            }
+            _animator.SetBool("Fire", false);
+            return;
         }
 
-        // 2. R키 누르면 총알 재장전 시작
-        if (Input.GetKeyDown(KeyCode.R) && _reloadCoroutine == null)
+        // 1. 발사 타이머를 지난 시간만큼 줄인다.
+        _fireTimer -= Time.deltaTime;
+
+        // 2. 커서가 숨어 있고, 버튼을 누르고 있고, 총알이 남아 있는 동안은 쏘는 동작을 한다. (달리는 중에도, 수류탄을 던지는 중에는 제외)
+        bool isMouseVisible = Cursor.visible;
+        bool isFiring = !isMouseVisible && Input.GetButton("Fire1") && _bulletCount > 0 && !_bombFire.IsThrowing;
+        _animator.SetBool("Fire", isFiring);
+
+        // 3. 쏘는 중이고 쏠 때가 되었으면 쏜다.
+        if (isFiring && _fireTimer <= 0f)
+        {
+            CancelReload();  // 재장전 중이었다면 멈춘다.
+            _fireTimer = _fireInterval;
+            _bulletCount--;
+            Shoot();
+        }
+
+        // 4. R 키를 누르면 재장전한다. (재장전 중이거나 탄창이 가득 차 있으면 하지 않는다.)
+        if (Input.GetKeyDown(KeyCode.R) && _reloadCoroutine == null && _bulletCount < _maxBulletCount)
         {
             _reloadCoroutine = StartCoroutine(Reloading_Coroutine());
         }
+    }
+
+    private void CancelReload()
+    {
+        if (_reloadCoroutine == null) return;
+
+        StopCoroutine(_reloadCoroutine);
+        Debug.Log("재장전 취소!");
+        _reloadCoroutine = null;
     }
 
     private IEnumerator Reloading_Coroutine()

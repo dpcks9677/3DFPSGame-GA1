@@ -1209,7 +1209,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e4e00bf98e9a47046a1f297dd1f2bb25, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CameraRotate
-  _rotationSpeed: 200
+  _rotationSpeed: 1000
 --- !u!114 &330585549
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4348,7 +4348,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ea508d7809b34cf9a89460c3dcd354be, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerRotate
-  _rotationSpeed: 200
+  _rotationSpeed: 1000
 --- !u!114 &1620558213
 MonoBehaviour:
   m_ObjectHideFlags: 0
