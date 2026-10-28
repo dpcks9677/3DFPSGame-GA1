@@ -42,11 +42,10 @@ public class PlayerGunFire : MonoBehaviour
             Shoot();
 
             // 서 있을 때(MoveMotion이 0)만 쏘는 동작을 한다.
-            if (_animator != null && _animator.GetFloat("MoveMotion") == 0f)
+            if (_animator.GetFloat("MoveMotion") == 0f)
             {
                 _animator.SetTrigger("Attack");
             }
-
             // 이 방식은: 이 모노비헤이비어가 등록한 모든 코루틴을 실행 취소
             // StopAllCoroutines();
 

@@ -29,9 +29,9 @@ public class PlayerMove : MonoBehaviour
 
     private void Awake()
     {
+        _animator = GetComponentInChildren<Animator>();
         _characterController = GetComponent<CharacterController>();
         _stamina = MaxStamina;
-        _animator = GetComponentInChildren<Animator>();
     }
 
     private void Update()
