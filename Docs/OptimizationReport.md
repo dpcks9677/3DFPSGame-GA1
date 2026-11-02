@@ -2,7 +2,7 @@
 
 - 프로젝트: Unity 6 (6000.3.22f1) / URP / GameScene
 - 측정 환경: Unity 에디터 Play 모드, 1920×1080, RTX 4060 Laptop GPU, VSync 꺼짐
-- 측정 도구: `Assets/PerfTools/PerfProbe.cs` (구역당 12초 샘플링, ProfilerRecorder로 수집)
+- 측정 도구: 임시 측정 스크립트 PerfProbe (구역당 12초 샘플링, ProfilerRecorder로 수집). 보고서 작성 후 저장소에서 삭제했다.
 
 ---
 
@@ -92,8 +92,7 @@
 | 5 좀비 피격 | 1178 | 1125 | 1036 | 902 | 450 | 443 |
 
 ### 3.5 증거 자료
-- 구역별 스크린샷 (같은 위치, 단계별): `PerfResults\baseline_*.png`, `step2_minimap_*.png`, `step3_shadow_*.png`, `step4_occlusion_*.png`, `step5_blood_*.png`, `step6_texture_*.png`
-- 원본 수치 (JSON): `PerfResults\*.json`
+- 이 문서의 3.1~3.4 표는 단계별 자동 측정 결과(구역당 약 1000프레임 평균)를 옮긴 것이다. 원본 JSON과 단계별 구역 스크린샷은 저장소에 포함하지 않았다.
 - Stats 스크린샷: `OptimizationReport_images\before_stats.png`, `after_stats.png`
 - Profiler 스크린샷: `OptimizationReport_images\before_profiler.png`, `after_profiler.png`
   (같은 2번 구역 시점, 직접 플레이 상태에서 캡처. 캡처 순서와 Profiler 프레임 번호 14785→17257, 그림자 캐스터 수로 Before/After를 구분함)
