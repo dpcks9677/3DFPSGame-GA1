@@ -23,6 +23,8 @@ public enum ZombieState
 [RequireComponent(typeof(NavMeshAgent))]
 public class Zombie : MonoBehaviour, IDamageable
 {
+    private const float BloodSprayLifetime = 1f;  // 블러드 스프레이가 남아 있는 시간
+
     [Header("스탯")]
     [SerializeField] private float _detectDistance = 8;    // 플레이어를 발견하는 거리
     [SerializeField] private float _combackDistance = 15;   // 처음 자리에서 이만큼 멀어지면 돌아가는 거리
@@ -112,6 +114,7 @@ public class Zombie : MonoBehaviour, IDamageable
             //bloodSpray.transform.SetParent(transform);
             bloodSpray.transform.position = damageInfo.HitPoint;
             bloodSpray.transform.forward = damageInfo.HitNormal;
+            Destroy(bloodSpray, BloodSprayLifetime);  // 반복 재생 파티클이라 직접 지우지 않으면 맞을 때마다 쌓인다.
 
             // 잠깐 멈칫 하고 싶다!
             Debug.Log($"{_state} -> Hit");
