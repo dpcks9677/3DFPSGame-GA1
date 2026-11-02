@@ -24,6 +24,12 @@ public class PlayerAnimationEvents : MonoBehaviour
         _meleeAttack.DeactivateCollider();
     }
 
+    // 지팡이 휘두르기 클립에서 지팡이가 몸 바로 앞을 지나는 프레임에 호출된다.
+    public void FanAttack()
+    {
+        _meleeAttack.FanAttack();
+    }
+
     // 지팡이 휘두르기 클립에서 지팡이가 머리 위로 올라간 프레임에 호출된다.
     public void StartTrail()
     {
