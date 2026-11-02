@@ -77,5 +77,9 @@ crashlytics-build.properties
 # Rider (JetBrains IDE) 설정 폴더
 .idea/
 
+# VS Code 설정 폴더와 Unity가 생성하는 slnx 솔루션 파일
+.vscode/
+*.slnx
+
 # macOS Finder 생성 파일
 .DS_Store
