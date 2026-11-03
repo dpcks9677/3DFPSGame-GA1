@@ -13,15 +13,56 @@ public class CameraFollow : MonoBehaviour
     [SerializeField] private float _quarterViewDistance = 12f;                            // 내려다보는 거리
     [SerializeField] private Vector3 _quarterViewAngle = new Vector3(45f, 45f, 0f);       // 월드 기준 고정 각도
 
+    [Header("피격 흔들림")]
+    [SerializeField] private float _hitShakeStrength = 0.15f;  // 플레이어가 맞았을 때 흔들리는 세기 (m)
+    [SerializeField] private float _hitShakeDuration = 0.15f;  // 플레이어가 맞았을 때 흔들리는 시간 (초)
+
     public CameraMode Mode => _mode;
     public event Action<CameraMode> OnCameraModeChanged;
 
+    private Player _player;
+    private float _shakeStrength;
+    private float _shakeDuration;
+    private float _shakeElapsed;  // 흔들림이 시작된 뒤 지난 시간. Duration 이상이면 흔들리지 않는다.
+
     private void Awake()
     {
+        _shakeElapsed = float.MaxValue;
+
         if (_target == null)
         {
             Debug.LogWarning("[CameraFollow] 카메라 타겟이 없습니다!!");
         }
+    }
+
+    private void Start()
+    {
+        _player = FindAnyObjectByType<Player>();
+        if (_player != null)
+        {
+            _player.OnDamaged += OnPlayerDamaged;
+        }
+    }
+
+    private void OnDestroy()
+    {
+        if (_player != null)
+        {
+            _player.OnDamaged -= OnPlayerDamaged;
+        }
+    }
+
+    private void OnPlayerDamaged()
+    {
+        Shake(_hitShakeStrength, _hitShakeDuration);
+    }
+
+    // 카메라를 strength 크기로 duration초 동안 흔든다. 시간이 지날수록 약해진다.
+    public void Shake(float strength, float duration)
+    {
+        _shakeStrength = strength;
+        _shakeDuration = duration;
+        _shakeElapsed = 0f;
     }
 
     private void Update()
@@ -69,6 +110,18 @@ public class CameraFollow : MonoBehaviour
                 transform.position = _target.position - transform.forward * _quarterViewDistance;
                 break;
         }
+
+        transform.position += GetShakeOffset();
+    }
+
+    // 이번 프레임의 흔들림 오프셋. 일시정지 중에는 진행하지 않고 0을 돌려준다.
+    private Vector3 GetShakeOffset()
+    {
+        if (Time.timeScale == 0f || _shakeElapsed >= _shakeDuration) return Vector3.zero;
+
+        _shakeElapsed += Time.unscaledDeltaTime;
+        float fade = 1f - Mathf.Clamp01(_shakeElapsed / _shakeDuration);
+        return UnityEngine.Random.insideUnitSphere * (_shakeStrength * fade);
     }
 
     // 사격과 투척이 나갈 방향. 쿼터뷰는 카메라가 바닥을 보므로 플레이어 정면을 쓴다.
