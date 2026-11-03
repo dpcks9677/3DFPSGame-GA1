@@ -24,15 +24,13 @@ public class PlayerMeleeAttack : MonoBehaviour
     [SerializeField] private LayerMask _obstacleMask;                        // 가로막는 것 (Default)
 
     [Header("히트스톱")]
-    [SerializeField] private float _hitStopScale = 0.05f;     // 맞는 순간 시간이 흐르는 배율
-    [SerializeField] private float _hitStopDuration = 0.06f;  // 느려져 있는 시간 (실제 초)
-    [SerializeField] private float _killHitStopScale = 0.02f;     // 처치할 때 시간이 흐르는 배율
-    [SerializeField] private float _killHitStopDuration = 0.12f;  // 처치할 때 느려져 있는 시간 (실제 초)
+    [SerializeField] private float _hitStopScale = 0.02f;     // 맞는 순간 시간이 흐르는 배율
+    [SerializeField] private float _hitStopDuration = 0.12f;  // 느려져 있는 시간 (실제 초)
 
     [Header("타격감")]
     [SerializeField] private float _knockbackDistance = 0.8f;   // 맞은 대상이 밀려나는 거리 (m)
-    [SerializeField] private float _hitShakeStrength = 0.08f;   // 맞혔을 때 카메라 흔들림 세기
-    [SerializeField] private float _hitShakeDuration = 0.1f;    // 맞혔을 때 카메라 흔들리는 시간 (초)
+    [SerializeField] private float _hitShakeStrength = 0.2f;    // 맞혔을 때 카메라 흔들림 세기
+    [SerializeField] private float _hitShakeDuration = 0.18f;   // 맞혔을 때 카메라 흔들리는 시간 (초)
     [SerializeField] private CameraFollow _cameraFollow;        // 흔들 카메라
 
     public event System.Action<bool> OnHit;  // 맞혔을 때 처치 여부를 알린다.
@@ -179,18 +177,10 @@ public class PlayerMeleeAttack : MonoBehaviour
         return damageable.IsDead;
     }
 
-    // 맞혔을 때의 연출. 처치했으면 히트스톱을 더 세게 건다.
+    // 맞혔을 때의 연출. 처치 여부와 상관없이 같은 크기로 히트스톱을 건다.
     private void OnMeleeHit(bool killed)
     {
-        if (killed)
-        {
-            GameManager.Instance.HitStop(_killHitStopScale, _killHitStopDuration);
-        }
-        else
-        {
-            GameManager.Instance.HitStop(_hitStopScale, _hitStopDuration);
-        }
-
+        GameManager.Instance.HitStop(_hitStopScale, _hitStopDuration);
         _cameraFollow.Shake(_hitShakeStrength, _hitShakeDuration);
         OnHit?.Invoke(killed);
     }
