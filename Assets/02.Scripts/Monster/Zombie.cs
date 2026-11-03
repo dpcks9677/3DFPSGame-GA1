@@ -49,6 +49,7 @@ public class Zombie : MonoBehaviour, IDamageable
 
     public float MaxHealth => _maxHealth;
     public float Health => _health;
+    public bool IsDead => _state == ZombieState.Death;
 
     // 좀비가 죽는 순간 발행하는 이벤트 (스포너, UI 등이 구독한다)
     public event Action<Zombie> Died;
@@ -134,11 +135,12 @@ public class Zombie : MonoBehaviour, IDamageable
         }
 
         // StopAllCoroutines 뒤에 시작해야 끊기지 않는다. 생존/사망 모두 밀려난다.
-        StartCoroutine(Knockback_Coroutine());
+        float distance = damageInfo.Knockback > 0f ? damageInfo.Knockback : _knockbackDistance;
+        StartCoroutine(Knockback_Coroutine(distance));
     }
 
     // 플레이어 반대 방향으로 짧게 밀려난다. 끝으로 갈수록 느려진다.
-    private IEnumerator Knockback_Coroutine()
+    private IEnumerator Knockback_Coroutine(float distance)
     {
         Vector3 direction = transform.position - _player.transform.position;
         direction.y = 0f;
@@ -151,7 +153,7 @@ public class Zombie : MonoBehaviour, IDamageable
             elapsed += deltaTime;
 
             // 남은 시간 비율에 비례해 속도를 줄인다. (처음 빠르게, 나중에 느리게)
-            float speed = _knockbackDistance / _knockbackTime * 2f * (1f - elapsed / _knockbackTime);
+            float speed = distance / _knockbackTime * 2f * (1f - elapsed / _knockbackTime);
             _agent.Move(direction * speed * deltaTime);
             yield return null;
         }

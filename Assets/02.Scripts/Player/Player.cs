@@ -14,6 +14,7 @@ public class Player : MonoBehaviour, IDamageable
 
     public float MaxHealth => _maxHealth;
     public float Health => _health;
+    public bool IsDead => _health <= 0f;
 
     // Action 자료형: 함수(들)를 저장할 수 있다.
     public event Action OnDamaged = null;

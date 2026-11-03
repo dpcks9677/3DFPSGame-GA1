@@ -23,6 +23,8 @@ public class Drum : MonoBehaviour, IDamageable
         _rigidbody = GetComponent<Rigidbody>();
     }
 
+    public bool IsDead => _health <= 0f;
+
     public void TakeDamage(DamageInfo damageInfo)
     {
         if (_health <= 0)

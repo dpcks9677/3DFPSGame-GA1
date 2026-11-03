@@ -29,6 +29,7 @@ public class PlayerGunFire : MonoBehaviour
     public int BulletCount => _bulletCount;                  // 남은 총알 수 (밖에서는 읽기만 한다)
     public int MaxBulletCount => _maxBulletCount;            // 탄창에 들어가는 총알 수
     public event System.Action<int, int> OnBulletChanged;    // 총알 수가 바뀌면 (남은 수, 탄창 크기)를 알린다.
+    public event System.Action<bool> OnHit;                  // 대상을 맞히면 처치 여부를 알린다.
 
     private float _fireTimer = 0f;
     private int _bulletCount = 0;
@@ -157,7 +158,11 @@ public class PlayerGunFire : MonoBehaviour
             damageInfo.HitPoint = hitInfo.point;
             damageInfo.HitNormal = hitInfo.normal;
 
-            hitInfo.collider.GetComponent<IDamageable>()?.TakeDamage(damageInfo);
+            if (hitInfo.collider.TryGetComponent(out IDamageable damageable))
+            {
+                damageable.TakeDamage(damageInfo);
+                OnHit?.Invoke(damageable.IsDead);
+            }
 
             /*
              hitInfo.collider.GetComponent<Zombie>()?.TakeDamage(_damage);

@@ -3,4 +3,7 @@ public interface IDamageable
 {
     // 이 약속은 아래 메서드를 구현해야 한다는 규칙을 가지고 있다!
     public void TakeDamage(DamageInfo damageInfo);
+
+    // TakeDamage 뒤에 읽으면 방금 그 공격으로 죽었는지(또는 이미 죽어 있는지) 알 수 있다.
+    public bool IsDead { get; }
 }

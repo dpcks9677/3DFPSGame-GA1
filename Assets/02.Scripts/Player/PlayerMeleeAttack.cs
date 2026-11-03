@@ -26,6 +26,16 @@ public class PlayerMeleeAttack : MonoBehaviour
     [Header("히트스톱")]
     [SerializeField] private float _hitStopScale = 0.05f;     // 맞는 순간 시간이 흐르는 배율
     [SerializeField] private float _hitStopDuration = 0.06f;  // 느려져 있는 시간 (실제 초)
+    [SerializeField] private float _killHitStopScale = 0.02f;     // 처치할 때 시간이 흐르는 배율
+    [SerializeField] private float _killHitStopDuration = 0.12f;  // 처치할 때 느려져 있는 시간 (실제 초)
+
+    [Header("타격감")]
+    [SerializeField] private float _knockbackDistance = 0.8f;   // 맞은 대상이 밀려나는 거리 (m)
+    [SerializeField] private float _hitShakeStrength = 0.08f;   // 맞혔을 때 카메라 흔들림 세기
+    [SerializeField] private float _hitShakeDuration = 0.1f;    // 맞혔을 때 카메라 흔들리는 시간 (초)
+    [SerializeField] private CameraFollow _cameraFollow;        // 흔들 카메라
+
+    public event System.Action<bool> OnHit;  // 맞혔을 때 처치 여부를 알린다.
 
     private PlayerWeaponMode _weaponMode;
     private Animator _animator;
@@ -42,6 +52,11 @@ public class PlayerMeleeAttack : MonoBehaviour
 
         _withGun = _soldierMesh.sharedMaterials;
         _withoutGun = new[] { _withGun[0] };
+
+        if (_cameraFollow == null)
+        {
+            _cameraFollow = Camera.main.GetComponent<CameraFollow>();
+        }
     }
 
     private void OnEnable()
@@ -148,18 +163,36 @@ public class PlayerMeleeAttack : MonoBehaviour
 
         // 4. 대상에서 플레이어에 가장 가까운 점을 맞은 자리로 삼는다.
         Vector3 hitPoint = other.ClosestPoint(transform.position);
-        GiveDamage(damageable, hitPoint);
-        GameManager.Instance.HitStop(_hitStopScale, _hitStopDuration);
+        bool killed = GiveDamage(damageable, hitPoint);
+        OnMeleeHit(killed);
     }
 
-    // 대미지 정보를 만들어 넘긴다. 맞은 자리의 방향은 플레이어 쪽이다.
-    private void GiveDamage(IDamageable damageable, Vector3 hitPoint)
+    // 대미지 정보를 만들어 넘긴다. 맞은 자리의 방향은 플레이어 쪽이다. 이 공격으로 죽었는지 돌려준다.
+    private bool GiveDamage(IDamageable damageable, Vector3 hitPoint)
     {
         DamageInfo damageInfo = new DamageInfo();
         damageInfo.Value = _damage;
         damageInfo.HitPoint = hitPoint;
         damageInfo.HitNormal = (transform.position - hitPoint).normalized;
+        damageInfo.Knockback = _knockbackDistance;
         damageable.TakeDamage(damageInfo);
+        return damageable.IsDead;
+    }
+
+    // 맞혔을 때의 연출. 처치했으면 히트스톱을 더 세게 건다.
+    private void OnMeleeHit(bool killed)
+    {
+        if (killed)
+        {
+            GameManager.Instance.HitStop(_killHitStopScale, _killHitStopDuration);
+        }
+        else
+        {
+            GameManager.Instance.HitStop(_hitStopScale, _hitStopDuration);
+        }
+
+        _cameraFollow.Shake(_hitShakeStrength, _hitShakeDuration);
+        OnHit?.Invoke(killed);
     }
 
     // 앞쪽 부채꼴 안의 대상을 한 번에 때린다. 휘두르는 동작의 FanAttack 이벤트가 불러 준다.
@@ -173,6 +206,7 @@ public class PlayerMeleeAttack : MonoBehaviour
         // 1. 사거리 안의 대상을 모두 찾는다.
         Collider[] colliders = Physics.OverlapSphere(origin, _range, _targetMask);
         bool hitAny = false;
+        bool anyKilled = false;
         foreach (Collider col in colliders)
         {
             // 2. 대상에서 플레이어에 가장 가까운 점을 맞을 자리로 삼는다.
@@ -189,15 +223,15 @@ public class PlayerMeleeAttack : MonoBehaviour
             // 5. 대미지를 받을 수 있으면 대미지를 준다.
             if (col.TryGetComponent(out IDamageable damageable))
             {
-                GiveDamage(damageable, hitPoint);
+                anyKilled |= GiveDamage(damageable, hitPoint);
                 hitAny = true;
             }
         }
 
-        // 6. 한 마리라도 때렸으면 히트스톱은 한 번만 건다.
+        // 6. 한 마리라도 때렸으면 히트스톱과 흔들림은 한 번만 건다.
         if (hitAny)
         {
-            GameManager.Instance.HitStop(_hitStopScale, _hitStopDuration);
+            OnMeleeHit(anyKilled);
         }
     }
 
