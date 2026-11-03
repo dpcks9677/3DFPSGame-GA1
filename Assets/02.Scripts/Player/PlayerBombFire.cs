@@ -23,12 +23,20 @@ public class PlayerBombFire : MonoBehaviour
     public int BombCount => _bombCount;                        // 남은 폭탄 수 (밖에서는 읽기만 한다)
     public event System.Action<int> OnBombChanged;             // 폭탄 수가 바뀌면 남은 수를 알린다.
 
+    [SerializeField] private CameraFollow _cameraFollow;       // 조준 방향을 알려주는 카메라
+    [SerializeField] private float _quarterViewLift = 0.3f;    // 쿼터뷰에서 포물선으로 던지도록 위로 올려주는 양
+
     private PlayerWeaponMode _weaponMode;
 
     private void Awake()
     {
         _weaponMode = GetComponent<PlayerWeaponMode>();
         _bombCount = _maxBombCount;  // 폭탄을 가득 가지고 시작한다.
+
+        if (_cameraFollow == null)
+        {
+            _cameraFollow = Camera.main.GetComponent<CameraFollow>();
+        }
     }
 
     private void Start()
@@ -98,7 +106,13 @@ public class PlayerBombFire : MonoBehaviour
 
         // 5. 생성된 수류탄을 시선 방향으로 던지기
         Rigidbody rigidbody = bomb.GetComponent<Rigidbody>();
-        rigidbody.AddForce(Camera.main.transform.forward * _currentThrowPower, ForceMode.Impulse);
+        //    쿼터뷰의 조준 방향은 수평이므로 살짝 위로 올려 던진다.
+        Vector3 direction = _cameraFollow.GetAimRay().direction;
+        if (_cameraFollow.Mode == CameraMode.QuarterView)
+        {
+            direction = (direction + Vector3.up * _quarterViewLift).normalized;
+        }
+        rigidbody.AddForce(direction * _currentThrowPower, ForceMode.Impulse);
     }
 
 }

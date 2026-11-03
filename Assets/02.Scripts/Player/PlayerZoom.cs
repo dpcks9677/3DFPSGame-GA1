@@ -9,18 +9,26 @@ public class PlayerZoom : MonoBehaviour
     [SerializeField] private float _normalFov = 60f;  // 평소 시야각
     [SerializeField] private float _zoomFov = 15f;    // 확대했을 때 시야각
 
+    [SerializeField] private CameraFollow _cameraFollow;
+
     private PlayerWeaponMode _weaponMode;
 
     private void Awake()
     {
         _weaponMode = GetComponent<PlayerWeaponMode>();
+
+        if (_cameraFollow == null)
+        {
+            _cameraFollow = Camera.main.GetComponent<CameraFollow>();
+        }
     }
 
     private void Update()
     {
-        // 게임 중이고, 저격 모드이고, 오른쪽 버튼을 누르고 있을 때만 확대한다.
+        // 게임 중이고, 저격 모드이고, 1인칭이고, 오른쪽 버튼을 누르고 있을 때만 확대한다.
         bool isZooming = GameManager.Instance.State == GameState.Playing
                          && _weaponMode.Mode == WeaponMode.Sniper
+                         && _cameraFollow.Mode == CameraMode.FirstPerson
                          && Input.GetMouseButton(1);
 
         Camera.main.fieldOfView = isZooming ? _zoomFov : _normalFov;

@@ -23,6 +23,9 @@ public class PlayerGunFire : MonoBehaviour
     [SerializeField] private GameObject[] _muzzleFlashes;
     [SerializeField] private float _flashTime = 0.05f;
 
+    [Header("카메라")]
+    [SerializeField] private CameraFollow _cameraFollow;     // 조준 방향을 알려주는 카메라
+
     public int BulletCount => _bulletCount;                  // 남은 총알 수 (밖에서는 읽기만 한다)
     public int MaxBulletCount => _maxBulletCount;            // 탄창에 들어가는 총알 수
     public event System.Action<int, int> OnBulletChanged;    // 총알 수가 바뀌면 (남은 수, 탄창 크기)를 알린다.
@@ -34,10 +37,19 @@ public class PlayerGunFire : MonoBehaviour
     private Animator _animator;
     private PlayerBombFire _bombFire;
     private PlayerWeaponMode _weaponMode;
+    private int _hitLayerMask;                               // 플레이어 자신은 맞지 않도록 제외한 레이어
 
     private void Awake()
     {
         _bulletCount = _maxBulletCount;
+
+        // 3인칭/백뷰에서는 화면 중앙 레이가 플레이어 몸을 지나가므로 Player 레이어는 무시한다.
+        _hitLayerMask = ~LayerMask.GetMask("Player");
+
+        if (_cameraFollow == null)
+        {
+            _cameraFollow = Camera.main.GetComponent<CameraFollow>();
+        }
     }
 
     private void Start()
@@ -117,14 +129,14 @@ public class PlayerGunFire : MonoBehaviour
         // RayCastHit: 레이저가 물체와 부딛히면 그 정보를 저장하는 구조체
 
         // 2. 레이(광선)를 생성하고 발사될 위치와 진행 방향 설정하기
-        Transform cameraTransform = Camera.main.transform;
-        Ray ray = new Ray(cameraTransform.position, cameraTransform.forward);
+        //    카메라 모드마다 조준 방향이 다르므로 CameraFollow에게 받아온다.
+        Ray ray = _cameraFollow.GetAimRay();
 
         // 3. 레이가 부딛힌 대상의 정보를 저장할 변수 생성하기
         RaycastHit hitInfo = new RaycastHit();
 
         // 4. 레이를 발사하고, 만일 부딛힌 물체가 있다면 이펙트 표시하기
-        bool isHit = Physics.Raycast(ray, out hitInfo, _range);
+        bool isHit = Physics.Raycast(ray, out hitInfo, _range, _hitLayerMask);
 
         Vector3 laserEnd = isHit ? hitInfo.point : ray.origin + ray.direction * _range;
         ShowLaser(_laserStart.position, laserEnd);
