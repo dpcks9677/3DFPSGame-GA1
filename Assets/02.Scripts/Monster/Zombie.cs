@@ -24,8 +24,6 @@ public enum ZombieState
 public class Zombie : MonoBehaviour, IDamageable
 {
     private const float BloodSprayLifetime = 1f;  // 블러드 스프레이가 남아 있는 시간
-    private static readonly int EmissionColorId = Shader.PropertyToID("_EmissionColor");
-    private static readonly int EmissionMapId = Shader.PropertyToID("_EmissionMap");
 
     [Header("스탯")]
     [SerializeField] private float _detectDistance = 8;    // 플레이어를 발견하는 거리
@@ -39,10 +37,9 @@ public class Zombie : MonoBehaviour, IDamageable
 
     [Header("이펙트")]
     [SerializeField] private GameObject _bloodSprayPrefab;
-    [SerializeField] private float _hitFlashTime = 0.08f;  // 맞았을 때 몸이 하얗게 번쩍이는 시간 (실제 초)
+    [SerializeField] private float _knockbackDistance = 0.4f;  // 맞았을 때 뒤로 밀리는 거리 (m)
+    [SerializeField] private float _knockbackTime = 0.15f;     // 뒤로 밀리는 시간 (초)
 
-    private Renderer[] _bodyRenderers;  // 번쩍일 몸 렌더러 (스프라이트, 파티클 제외)
-    private MaterialPropertyBlock _flashBlock;
     private float _attackTimer = 0f;
     private Vector3 _startPosition;
     private GameObject _player;
@@ -68,22 +65,6 @@ public class Zombie : MonoBehaviour, IDamageable
         _agent.speed = _moveSpeed;
 
         _animator = GetComponentInChildren<Animator>();
-
-        // 몸을 그리는 Skinned/MeshRenderer만 모은다. (미니맵 스프라이트나 블러드 스프레이는 제외)
-        var bodyRenderers = new System.Collections.Generic.List<Renderer>();
-        foreach (Renderer meshRenderer in GetComponentsInChildren<Renderer>())
-        {
-            if (meshRenderer is SkinnedMeshRenderer || meshRenderer is MeshRenderer)
-            {
-                bodyRenderers.Add(meshRenderer);
-            }
-        }
-        _bodyRenderers = bodyRenderers.ToArray();
-
-        // URP Lit은 _EMISSION이 켜져 있어서, 이미션 맵을 흰색으로 바꾸고 색을 키우면 전체가 하얗게 보인다.
-        _flashBlock = new MaterialPropertyBlock();
-        _flashBlock.SetTexture(EmissionMapId, Texture2D.whiteTexture);
-        _flashBlock.SetColor(EmissionColorId, Color.white * 2f);
 
         _startPosition = transform.position;
 
@@ -152,23 +133,27 @@ public class Zombie : MonoBehaviour, IDamageable
             StartCoroutine(Death_Coroutine());
         }
 
-        // StopAllCoroutines 뒤에 시작해야 끊기지 않는다. 생존/사망 모두 번쩍인다.
-        StartCoroutine(HitFlash_Coroutine());
+        // StopAllCoroutines 뒤에 시작해야 끊기지 않는다. 생존/사망 모두 밀려난다.
+        StartCoroutine(Knockback_Coroutine());
     }
 
-    // 잠깐 하얗게 번쩍였다가 원래대로 돌아온다. 히트스톱 중에도 길어지지 않게 실제 시간을 쓴다.
-    private IEnumerator HitFlash_Coroutine()
+    // 플레이어 반대 방향으로 짧게 밀려난다. 끝으로 갈수록 느려진다.
+    private IEnumerator Knockback_Coroutine()
     {
-        foreach (Renderer meshRenderer in _bodyRenderers)
-        {
-            meshRenderer.SetPropertyBlock(_flashBlock);
-        }
+        Vector3 direction = transform.position - _player.transform.position;
+        direction.y = 0f;
+        direction.Normalize();
 
-        yield return new WaitForSecondsRealtime(_hitFlashTime);
-
-        foreach (Renderer meshRenderer in _bodyRenderers)
+        float elapsed = 0f;
+        while (elapsed < _knockbackTime)
         {
-            meshRenderer.SetPropertyBlock(null);
+            float deltaTime = Time.deltaTime;
+            elapsed += deltaTime;
+
+            // 남은 시간 비율에 비례해 속도를 줄인다. (처음 빠르게, 나중에 느리게)
+            float speed = _knockbackDistance / _knockbackTime * 2f * (1f - elapsed / _knockbackTime);
+            _agent.Move(direction * speed * deltaTime);
+            yield return null;
         }
     }
 
