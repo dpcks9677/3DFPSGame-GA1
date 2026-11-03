@@ -20,6 +20,8 @@ public class GameManager : SingletonBehaviour<GameManager>
     private GameState _state = GameState.Ready;
     public GameState State => _state;
 
+    private bool _isHitStopping = false;  // 히트스톱으로 시간이 느려져 있는 중
+
     public event Action<GameState> OnStateChanged;
 
 
@@ -61,7 +63,30 @@ public class GameManager : SingletonBehaviour<GameManager>
     private void StartGame()
     {
         StopAllCoroutines();
+        _isHitStopping = false;  // 히트스톱 코루틴이 끊겨도 Restart가 timeScale을 1로 되돌려 둔다.
         StartCoroutine(StartSequence_Coroutine());
+    }
+
+    // 타격감을 위해 잠깐 시간을 거의 멈춘다. 이미 히트스톱 중이면 무시한다.
+    public void HitStop(float scale, float duration)
+    {
+        if (_state != GameState.Playing || _isHitStopping) return;
+
+        StartCoroutine(HitStop_Coroutine(scale, duration));
+    }
+
+    private IEnumerator HitStop_Coroutine(float scale, float duration)
+    {
+        _isHitStopping = true;
+        Time.timeScale = scale;
+        yield return new WaitForSecondsRealtime(duration);
+        _isHitStopping = false;
+
+        // 그 사이 일시정지(0)가 되었다면 그대로 둔다.
+        if (_state != GameState.Pause)
+        {
+            Time.timeScale = 1f;
+        }
     }
 
     private IEnumerator StartSequence_Coroutine()

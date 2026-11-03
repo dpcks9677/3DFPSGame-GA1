@@ -23,6 +23,10 @@ public class PlayerMeleeAttack : MonoBehaviour
     [SerializeField] private LayerMask _targetMask;                          // 때릴 대상 (Drum, Zombie)
     [SerializeField] private LayerMask _obstacleMask;                        // 가로막는 것 (Default)
 
+    [Header("히트스톱")]
+    [SerializeField] private float _hitStopScale = 0.05f;     // 맞는 순간 시간이 흐르는 배율
+    [SerializeField] private float _hitStopDuration = 0.06f;  // 느려져 있는 시간 (실제 초)
+
     private PlayerWeaponMode _weaponMode;
     private Animator _animator;
     private int _meleeLayer;      // Melee Layer의 번호
@@ -145,6 +149,7 @@ public class PlayerMeleeAttack : MonoBehaviour
         // 4. 대상에서 플레이어에 가장 가까운 점을 맞은 자리로 삼는다.
         Vector3 hitPoint = other.ClosestPoint(transform.position);
         GiveDamage(damageable, hitPoint);
+        GameManager.Instance.HitStop(_hitStopScale, _hitStopDuration);
     }
 
     // 대미지 정보를 만들어 넘긴다. 맞은 자리의 방향은 플레이어 쪽이다.
@@ -167,6 +172,7 @@ public class PlayerMeleeAttack : MonoBehaviour
 
         // 1. 사거리 안의 대상을 모두 찾는다.
         Collider[] colliders = Physics.OverlapSphere(origin, _range, _targetMask);
+        bool hitAny = false;
         foreach (Collider col in colliders)
         {
             // 2. 대상에서 플레이어에 가장 가까운 점을 맞을 자리로 삼는다.
@@ -184,7 +190,14 @@ public class PlayerMeleeAttack : MonoBehaviour
             if (col.TryGetComponent(out IDamageable damageable))
             {
                 GiveDamage(damageable, hitPoint);
+                hitAny = true;
             }
+        }
+
+        // 6. 한 마리라도 때렸으면 히트스톱은 한 번만 건다.
+        if (hitAny)
+        {
+            GameManager.Instance.HitStop(_hitStopScale, _hitStopDuration);
         }
     }
 
