@@ -6,9 +6,11 @@ public class PlayerMove : MonoBehaviour
     private const float Gravity = -20f;
     private const int MaxJumps = 2;
     public const float MaxStamina = 100f;
+    private const float CoyoteTime = 0.12f;  // 땅에서 떨어진 뒤에도 첫 점프를 허용하는 유예 시간 (초)
 
     private float _yVelocity = 0f;  // 위아래 속도, 매 프레임마다 중력 가속도가 붙는다.
     private int _jumpCount = 0;   // 점프 횟수
+    private float _coyoteTimer = 0f;  // 땅에서 떨어진 뒤 남은 유예 시간
     private float _stamina = 0f;
 
     public float Stamina => _stamina;
@@ -58,12 +60,20 @@ public class PlayerMove : MonoBehaviour
         if (_characterController.isGrounded == false)
         {
             _yVelocity += Gravity * Time.deltaTime;
+
+            // 유예 시간이 지나도록 점프 없이 떨어졌다면 첫 점프를 쓴 것으로 본다.
+            _coyoteTimer -= Time.deltaTime;
+            if (_coyoteTimer <= 0f && _jumpCount == 0)
+            {
+                _jumpCount = 1;
+            }
         }
         else
         {
             // 땅에 서있으면 중력/점프 초기화
             _yVelocity = -1f;
             _jumpCount = 0;
+            _coyoteTimer = CoyoteTime;
         }
 
         // 4. 만약에 점프키를 누르면 && 점프 카운트가 MaxJumps 이하라면 ... 점프를한다.
@@ -71,6 +81,7 @@ public class PlayerMove : MonoBehaviour
         {
             _yVelocity = _jumpPower;
             _jumpCount++;
+            _coyoteTimer = 0f;  // 점프 직후에는 유예 시간으로 또 점프하지 않는다.
             _stamina -= _jumpCost;
         }
 
