@@ -29,6 +29,8 @@ public class UI_Login : MonoBehaviour
 
     private Mode _mode = Mode.Login;
     private readonly PlayerPrefsAccountRepository _repository = new PlayerPrefsAccountRepository();
+    private readonly AccountIdSpecification _idSpec = new AccountIdSpecification();
+    private readonly AccountPasswordSpecification _passwordSpec = new AccountPasswordSpecification();
 
     private void Start()
     {
@@ -96,6 +98,18 @@ public class UI_Login : MonoBehaviour
         if (string.IsNullOrEmpty(id) || string.IsNullOrEmpty(password))
         {
             _messageText.text = "아이디와 비밀번호를 입력해 주세요.";
+            return;
+        }
+
+        if (!_idSpec.IsSatisfiedBy(id))
+        {
+            _messageText.text = _idSpec.ErrorMessage;
+            return;
+        }
+
+        if (!_passwordSpec.IsSatisfiedBy(password))
+        {
+            _messageText.text = _passwordSpec.ErrorMessage;
             return;
         }
 
