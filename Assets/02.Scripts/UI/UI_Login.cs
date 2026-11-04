@@ -1,6 +1,5 @@
 using TMPro;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 // 로그인 화면. 로그인 모드와 회원가입 모드를 바꾸고, 입력을 확인해 PlayerPrefsAccountRepository에 부탁한다.
@@ -85,7 +84,7 @@ public class UI_Login : MonoBehaviour
             return;
         }
 
-        SceneManager.LoadScene(_gameSceneName);
+        SceneLoader.Load(_gameSceneName);  // 로딩 화면을 지나 게임 씬으로 간다.
     }
 
     // 회원가입: 입력을 확인하고, 문제가 없으면 계정을 저장한 뒤 로그인 모드로 돌아간다.

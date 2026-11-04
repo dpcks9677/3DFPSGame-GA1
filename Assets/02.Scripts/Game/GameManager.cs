@@ -133,7 +133,7 @@ public class GameManager : SingletonBehaviour<GameManager>
     {
         Time.timeScale = 1f;
         CursorManager.Instance.LockCursor();
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        SceneLoader.Load(SceneManager.GetActiveScene().name);  // 로딩 화면을 지나 지금 씬을 다시 불러온다.
     }
 
     // 게임 종료
