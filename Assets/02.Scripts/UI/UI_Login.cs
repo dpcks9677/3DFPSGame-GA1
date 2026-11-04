@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-// 로그인 화면. 로그인 모드와 회원가입 모드를 바꾸고, 입력을 확인해 AccountStorage에 부탁한다.
+// 로그인 화면. 로그인 모드와 회원가입 모드를 바꾸고, 입력을 확인해 PlayerPrefsAccountRepository에 부탁한다.
 public class UI_Login : MonoBehaviour
 {
     private enum Mode
@@ -28,6 +28,7 @@ public class UI_Login : MonoBehaviour
     [SerializeField] private string _gameSceneName = "GameScene";  // 로그인하면 불러올 씬
 
     private Mode _mode = Mode.Login;
+    private readonly PlayerPrefsAccountRepository _repository = new PlayerPrefsAccountRepository();
 
     private void Start()
     {
@@ -75,7 +76,7 @@ public class UI_Login : MonoBehaviour
             return;
         }
 
-        if (!AccountStorage.CheckPassword(id, password))
+        if (!_repository.CheckPassword(id, password))
         {
             // 아이디가 없는지 비밀번호가 틀렸는지는 알려 주지 않는다.
             _messageText.text = "아이디 또는 비밀번호가 맞지 않습니다.";
@@ -104,13 +105,13 @@ public class UI_Login : MonoBehaviour
             return;
         }
 
-        if (AccountStorage.Exists(id))
+        if (_repository.Exists(id))
         {
             _messageText.text = "이미 있는 아이디입니다.";
             return;
         }
 
-        AccountStorage.Register(id, password);
+        _repository.Register(id, password);
         GotoLogin();
         _messageText.text = "가입했습니다. 로그인해 주세요.";
     }
